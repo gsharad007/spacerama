@@ -7,3 +7,44 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.13.2"
+
+[profile.release]
+lto = true
+opt-level = 3
+codegen-units = 1
+incremental = false
+debug = false
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dev]
+opt-level = 1
+
+[lints.rust]
+unused_results = "warn"
+future-incompatible = "warn"
+# rust-2024-compatibility = "warn"
+
+[lints.clippy]
+all = "warn"
+pedantic = "warn"
+# restriction = "warn"
+nursery = "warn"
+# cargo = "warn"
+# separated_literal_suffix = "allow"
+# implicit_return = "allow"
+# bool_assert_comparison = "allow"
+# suboptimal_flops = "allow"
+# semicolon_outside_block = "allow"
+# single_call_fn = { level = "allow", priority = 1 }  # restriction
+# implicit_return = { level = "allow", priority = 1 }  # restriction
+# arithmetic-side-effects = "allow"  # restriction
+unwrap-used = "warn"
+non_ascii_literal = "warn"
+indexing_slicing = "warn"
+redundant_type_annotations = "warn"
+absolute-paths = "warn"
+
+# For Prototyping only
+missing-docs-in-private-items = "allow"
