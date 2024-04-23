@@ -7,13 +7,18 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.13"
+
 bevy_rand = "0.5"
 bevy_prng = { version = "0.5", features = ["wyrand"] }
-bevy_xpbd_3d = "0.4"
-ggrs = "0.10"
-bevy_ggrs = "0.15"
-
 rand_core = "0.6"
+
+bevy_xpbd_3d = "0.4"
+
+bevy_ggrs = "0.15"
+# ggrs = "0.10"
+ggrs = { git = "https://github.com/gschup/ggrs.git" }
+bytemuck = { version = "1.7", features = ["derive"] }
+
 derive_more = "0.99"
 itertools = "0.12"
 derivative = "2.2"
