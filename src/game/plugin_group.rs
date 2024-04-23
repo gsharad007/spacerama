@@ -1,9 +1,11 @@
 use bevy::{
     app::{PluginGroup, PluginGroupBuilder},
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    diagnostic::LogDiagnosticsPlugin,
 };
 
-use super::{network_plugin::NetworkingPlugin, physics_plugin::PhysicsPlugin};
+use super::{
+    network_plugin::NetworkingPlugin, physics_plugin::PhysicsPlugin, ship_plugin::ShipPlugin,
+};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct GamePluginGroup;
@@ -13,7 +15,7 @@ impl PluginGroup for GamePluginGroup {
         PluginGroupBuilder::start::<Self>()
             .add(PhysicsPlugin)
             .add(NetworkingPlugin)
-            .add(FrameTimeDiagnosticsPlugin)
+            .add(ShipPlugin)
             .add(LogDiagnosticsPlugin::default())
     }
 }
