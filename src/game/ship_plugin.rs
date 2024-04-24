@@ -51,8 +51,8 @@ pub struct ActionEventData {
     pub action2: f32,
 }
 
-const SHIP_SPEED: f32 = 10.0;
-const SHIP_ROTATION_SPEED: f32 = 0.1;
+const PROPULSION_THRUSTERS_STRENGTH: f32 = 10.0;
+const ANGULAR_THRUSTERS_STRENGTH: f32 = 0.1;
 
 #[allow(clippy::needless_pass_by_value)]
 fn process_actions(
@@ -61,13 +61,13 @@ fn process_actions(
 ) {
     for (entity, transform, action_event_data) in &query {
         let propulsion_thrusters =
-            ExternalImpulse::new(transform.forward() * action_event_data.thrust * SHIP_SPEED);
+            ExternalImpulse::new(transform.back() * action_event_data.thrust * PROPULSION_THRUSTERS_STRENGTH);
 
         let mut angular_trusters = ExternalAngularImpulse::default();
         _ = angular_trusters
-            .apply_impulse(transform.down() * action_event_data.roll * SHIP_ROTATION_SPEED)
-            .apply_impulse(transform.down() * action_event_data.pitch * SHIP_ROTATION_SPEED)
-            .apply_impulse(transform.left() * action_event_data.yaw * SHIP_ROTATION_SPEED);
+            .apply_impulse(transform.back() * action_event_data.roll * ANGULAR_THRUSTERS_STRENGTH)
+            .apply_impulse(transform.right() * action_event_data.pitch * ANGULAR_THRUSTERS_STRENGTH)
+            .apply_impulse(transform.down() * action_event_data.yaw * ANGULAR_THRUSTERS_STRENGTH);
 
         println!("ActionEventData: {action_event_data:?}");
         println!(
