@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use bevy_debug_grid::*;
+
 use crate::game::ship_plugin::Ship;
 
 #[derive(Debug)]
@@ -7,7 +9,8 @@ pub struct ShipPlugin;
 
 impl Plugin for ShipPlugin {
     fn build(&self, app: &mut App) {
-        _ = app.add_systems(Update, on_ship_created_add_visuals);
+        _ = app
+            .add_systems(Update, on_ship_created_add_visuals);
     }
 }
 

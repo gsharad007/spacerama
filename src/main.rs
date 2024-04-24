@@ -13,7 +13,6 @@ use bevy::{
 };
 
 use game::plugin_group::GamePluginGroup;
-use game::ship_plugin::Controlled;
 use visual::plugin_group::VisualPluginGroup;
 
 // const NUM_PLAYERS: usize = 2;

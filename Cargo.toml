@@ -19,9 +19,14 @@ bevy_ggrs = "0.15"
 ggrs = { git = "https://github.com/gschup/ggrs.git" }
 bytemuck = { version = "1.7", features = ["derive"] }
 
+leafwing-input-manager = "0.13"
+
 derive_more = "0.99"
 itertools = "0.12"
 derivative = "2.2"
+
+# cfg debug
+bevy_debug_grid = "0.5"
 
 [profile.release]
 lto = true
