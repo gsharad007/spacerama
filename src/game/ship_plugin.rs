@@ -3,9 +3,7 @@ use core::f32::consts::FRAC_PI_2;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use bevy_xpbd_3d::{
-    components::{
-        ExternalAngularImpulse, ExternalImpulse, Friction, Mass, MassPropertiesBundle, RigidBody,
-    },
+    components::{ExternalAngularImpulse, ExternalImpulse, MassPropertiesBundle, RigidBody},
     plugins::collision::Collider,
 };
 
