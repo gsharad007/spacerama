@@ -90,31 +90,31 @@ fn process_inputs(
         let mut action2 = 0.0;
 
         if action_state.pressed(&Action::ForwardThrust) {
-            println!("ForwardThrust");
+            // println!("ForwardThrust");
             thrust += action_state.clamped_value(&Action::ForwardThrust);
         }
         if action_state.pressed(&Action::ReverseThrust) {
-            println!("ReverseThrust");
+            // println!("ReverseThrust");
             thrust -= action_state.clamped_value(&Action::ReverseThrust);
         }
         if action_state.pressed(&Action::Aileron) {
-            println!("Aileron");
+            // println!("Aileron");
             roll += action_state.clamped_value(&Action::Aileron);
         }
         if action_state.pressed(&Action::Elevator) {
-            println!("Elevator");
+            // println!("Elevator");
             pitch += action_state.clamped_value(&Action::Elevator);
         }
         if action_state.pressed(&Action::Rudder) {
-            println!("Rudder");
+            // println!("Rudder");
             yaw += action_state.clamped_value(&Action::Rudder);
         }
         if action_state.pressed(&Action::Action1) {
-            println!("Action1");
+            // println!("Action1");
             action1 += action_state.clamped_value(&Action::Action1);
         }
         if action_state.pressed(&Action::Action2) {
-            println!("Action2");
+            // println!("Action2");
             action2 += action_state.clamped_value(&Action::Action2);
         }
 

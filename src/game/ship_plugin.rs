@@ -1,8 +1,13 @@
+use core::f32::consts::FRAC_PI_2;
+
 use bevy::prelude::*;
+use bevy_asset_loader::prelude::*;
 use bevy_xpbd_3d::{
     components::{ExternalAngularImpulse, ExternalImpulse, RigidBody},
     plugins::collision::Collider,
 };
+
+use super::states_plugin::{InGameState, MainState};
 
 #[derive(Debug)]
 pub struct ShipPlugin;
@@ -10,23 +15,50 @@ pub struct ShipPlugin;
 impl Plugin for ShipPlugin {
     fn build(&self, app: &mut App) {
         _ = app
-            .add_systems(Startup, setup)
-            .add_systems(Update, process_actions);
+            .configure_loading_state(
+                LoadingStateConfig::new(MainState::Loading).load_collection::<ShipAssets>(),
+            )
+            .add_systems(OnEnter(MainState::InGame), setup)
+            .add_systems(
+                Update,
+                process_actions
+                    .run_if(in_state(MainState::InGame))
+                    .run_if(in_state(InGameState::Running)),
+            );
     }
+}
+
+#[derive(AssetCollection, Resource)]
+struct ShipAssets {
+    #[asset(path = "models/ships/ship_001.glb#Mesh0/Primitive0")]
+    ship_001_main: Handle<Mesh>,
 }
 
 #[derive(Component)]
 pub struct Ship;
 
-fn setup(mut commands: Commands) {
+// #[derive(Resource)]
+// struct ShipModelsAssets(Handle<LoadedFolder>);
+
+// fn pre_load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+//     commands.insert_resource(ShipModelsAssets(asset_server.load("models/ships/ship_001.glb")));
+// }
+
+#[allow(clippy::needless_pass_by_value)]
+fn setup(mut commands: Commands, ship_assets: Res<ShipAssets>, assets_mesh: Res<Assets<Mesh>>) {
     // Spaceship setup
-    let collider = Collider::cylinder(1.5, 0.5);
-    _ = commands.spawn((
-        Ship,
-        SpatialBundle::from_transform(Transform::from_xyz(0.0, 0.0, 0.0)),
-        RigidBody::Dynamic,
-        collider,
-    ));
+    if let Some(ship_001) = assets_mesh.get(&ship_assets.ship_001_main) {
+        // let collider = Collider::cylinder(1.5, 0.5);
+        let mesh = ship_001.clone().transformed_by(Transform::from_rotation(Quat::from_rotation_y(FRAC_PI_2)));
+        let collider = Collider::trimesh_from_mesh(&mesh)
+            .expect("Failed to create collider from ship_001 mesh");
+        _ = commands.spawn((
+            Ship,
+            SpatialBundle::from_transform(Transform::from_xyz(0.0, 0.0, 0.0)),
+            RigidBody::Dynamic,
+            collider,
+        ));
+    }
 }
 
 // #[derive(Debug)]
@@ -60,8 +92,9 @@ fn process_actions(
     query: Query<(Entity, &Transform, &ActionEventData), With<Ship>>,
 ) {
     for (entity, transform, action_event_data) in &query {
-        let propulsion_thrusters =
-            ExternalImpulse::new(transform.back() * action_event_data.thrust * PROPULSION_THRUSTERS_STRENGTH);
+        let propulsion_thrusters = ExternalImpulse::new(
+            transform.back() * action_event_data.thrust * PROPULSION_THRUSTERS_STRENGTH,
+        );
 
         let mut angular_trusters = ExternalAngularImpulse::default();
         _ = angular_trusters
@@ -69,10 +102,10 @@ fn process_actions(
             .apply_impulse(transform.right() * action_event_data.pitch * ANGULAR_THRUSTERS_STRENGTH)
             .apply_impulse(transform.down() * action_event_data.yaw * ANGULAR_THRUSTERS_STRENGTH);
 
-        println!("ActionEventData: {action_event_data:?}");
-        println!(
-            "propulsion_thrusters: {propulsion_thrusters:?}, angular_trusters: {angular_trusters:?}",
-        );
+        // println!("ActionEventData: {action_event_data:?}");
+        // println!(
+        //     "propulsion_thrusters: {propulsion_thrusters:?}, angular_trusters: {angular_trusters:?}",
+        // );
 
         _ = commands
             .entity(entity)

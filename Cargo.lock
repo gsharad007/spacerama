@@ -382,6 +382,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_asset_loader"
+version = "0.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1de44dae5bfabc6311a687982a0eb77b70bd3b2f9f88de7351999810d76b275a"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "bevy_asset_loader_derive",
+ "path-slash",
+]
+
+[[package]]
+name = "bevy_asset_loader_derive"
+version = "0.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca8bf363b0d5287bcbd17cc3ad5b94b5f668d5cb4af74df301f1bde24fd6fea7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.60",
+]
+
+[[package]]
 name = "bevy_asset_macros"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -775,7 +798,23 @@ dependencies = [
  "rand_xoshiro",
  "serde",
  "serde_derive",
- "wyrand",
+ "wyrand 0.1.6",
+]
+
+[[package]]
+name = "bevy_prng"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08497116068623556e67e59b0204f5d9d8e7a2d4fd378f87c9c798f7af93f236"
+dependencies = [
+ "bevy",
+ "rand_chacha",
+ "rand_core",
+ "rand_pcg",
+ "rand_xoshiro",
+ "serde",
+ "serde_derive",
+ "wyrand 0.2.0",
 ]
 
 [[package]]
@@ -786,12 +825,12 @@ checksum = "8050e2869fe341db6874203b5a01ff12673807a2c7c80cb829f6c7bea6997268"
 
 [[package]]
 name = "bevy_rand"
-version = "0.5.2"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e9cb3711c9ca8a2572c4544befda9a14893884842668bcecc82b84a7b51b730"
+checksum = "c98c3be37468a6008cf0bb392e3decff0fc062898570b0ea4543fa6e9355bf7a"
 dependencies = [
  "bevy",
- "bevy_prng",
+ "bevy_prng 0.6.0",
  "getrandom",
  "rand_chacha",
  "rand_core",
@@ -3011,6 +3050,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 
 [[package]]
+name = "path-slash"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e91099d4268b0e11973f036e885d652fb0b21fedcf69738c627f94db6a44f42"
+
+[[package]]
 name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3525,9 +3570,10 @@ name = "spacerama"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_asset_loader",
  "bevy_debug_grid",
  "bevy_ggrs",
- "bevy_prng",
+ "bevy_prng 0.5.2",
  "bevy_rand",
  "bevy_xpbd_3d",
  "bytemuck",
@@ -4450,6 +4496,16 @@ name = "wyrand"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ee2fb243e75b43652f8b5ef347547bc82f10513dd7dacde806eb59d5ac5e7"
+dependencies = [
+ "rand_core",
+ "serde",
+]
+
+[[package]]
+name = "wyrand"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7dadc56f0dc130aa22c0d2fe303ccee3a2ad429c87d257642e96017920c66ed0"
 dependencies = [
  "rand_core",
  "serde",
