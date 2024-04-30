@@ -3,11 +3,13 @@ use core::f32::consts::FRAC_PI_2;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use bevy_xpbd_3d::{
-    components::{ExternalAngularImpulse, ExternalImpulse, RigidBody},
+    components::{
+        ExternalAngularImpulse, ExternalImpulse, Friction, Mass, MassPropertiesBundle, RigidBody,
+    },
     plugins::collision::Collider,
 };
 
-use super::states_plugin::{InGameState, MainState};
+use super::states_plugin::{FrameSystemsSet, InGameState, MainState};
 
 #[derive(Debug)]
 pub struct ShipPlugin;
@@ -22,6 +24,7 @@ impl Plugin for ShipPlugin {
             .add_systems(
                 Update,
                 process_actions
+                    .in_set(FrameSystemsSet::Player)
                     .run_if(in_state(MainState::InGame))
                     .run_if(in_state(InGameState::Running)),
             );
@@ -48,15 +51,25 @@ pub struct Ship;
 fn setup(mut commands: Commands, ship_assets: Res<ShipAssets>, assets_mesh: Res<Assets<Mesh>>) {
     // Spaceship setup
     if let Some(ship_001) = assets_mesh.get(&ship_assets.ship_001_main) {
-        // let collider = Collider::cylinder(1.5, 0.5);
-        let mesh = ship_001.clone().transformed_by(Transform::from_rotation(Quat::from_rotation_y(FRAC_PI_2)));
-        let collider = Collider::trimesh_from_mesh(&mesh)
+        // let collider = Collider::capsule(4.0, 1.0);
+        // let collider = Collider::round_cuboid(10.5, 10.5, 5.5, 0.5);
+        let mesh = ship_001
+            .clone()
+            .transformed_by(Transform::from_rotation(Quat::from_rotation_y(FRAC_PI_2)));
+        let collider = Collider::convex_decomposition_from_mesh(&mesh)
             .expect("Failed to create collider from ship_001 mesh");
+        let mass_bundle = MassPropertiesBundle::new_computed(&collider, SHIP_MASS_DENSITY_SCALE);
         _ = commands.spawn((
             Ship,
             SpatialBundle::from_transform(Transform::from_xyz(0.0, 0.0, 0.0)),
             RigidBody::Dynamic,
             collider,
+            mass_bundle,
+            // CollisionLayers::new([Layer::Bots], [Layer::Ground, Layer::Constructed]), // Bots collides with ground, and constructed layers
+            // Friction::new(0.0),
+            // Restitution::new(0.0).with_combine_rule(CoefficientCombine::Multiply),
+            // LinearDamping(0.2),
+            // AngularDamping(0.2),
         ));
     }
 }
@@ -83,8 +96,10 @@ pub struct ActionEventData {
     pub action2: f32,
 }
 
-const PROPULSION_THRUSTERS_STRENGTH: f32 = 10.0;
-const ANGULAR_THRUSTERS_STRENGTH: f32 = 0.1;
+const SHIP_MASS_DENSITY_SCALE: f32 = 0.25;
+
+const PROPULSION_THRUSTERS_STRENGTH: f32 = 10000.0;
+const ANGULAR_THRUSTERS_STRENGTH: f32 = 1000.0;
 
 #[allow(clippy::needless_pass_by_value)]
 fn process_actions(
@@ -102,10 +117,13 @@ fn process_actions(
             .apply_impulse(transform.right() * action_event_data.pitch * ANGULAR_THRUSTERS_STRENGTH)
             .apply_impulse(transform.down() * action_event_data.yaw * ANGULAR_THRUSTERS_STRENGTH);
 
-        // println!("ActionEventData: {action_event_data:?}");
-        // println!(
-        //     "propulsion_thrusters: {propulsion_thrusters:?}, angular_trusters: {angular_trusters:?}",
-        // );
+        // if action_event_data.roll != 0.0 {
+        //     println!("Transform: {transform:?}");
+        //     println!("ActionEventData: {action_event_data:?}");
+        //     println!(
+        //         "propulsion_thrusters: {propulsion_thrusters:?}, angular_trusters: {angular_trusters:?}",
+        //     );
+        // }
 
         _ = commands
             .entity(entity)

@@ -2,7 +2,10 @@ use bevy::prelude::*;
 
 use leafwing_input_manager::prelude::*;
 
-use crate::game::ship_plugin::{ActionEventData, Ship};
+use crate::game::{
+    ship_plugin::{ActionEventData, Ship},
+    states_plugin::{FrameSystemsSet, InGameState, MainState},
+};
 
 #[derive(Debug)]
 pub struct InputPlugin;
@@ -11,7 +14,13 @@ impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         _ = app
             .add_plugins(InputManagerPlugin::<Action>::default())
-            .add_systems(Update, (on_ship_created_add_input, process_inputs));
+            .add_systems(
+                Update,
+                (on_ship_created_add_input, process_inputs)
+                    .in_set(FrameSystemsSet::Input)
+                    .run_if(in_state(MainState::InGame))
+                    .run_if(in_state(InGameState::Running)),
+            );
     }
 }
 
@@ -90,7 +99,7 @@ fn process_inputs(
         let mut action2 = 0.0;
 
         if action_state.pressed(&Action::ForwardThrust) {
-            // println!("ForwardThrust");
+            println!("ForwardThrust");
             thrust += action_state.clamped_value(&Action::ForwardThrust);
         }
         if action_state.pressed(&Action::ReverseThrust) {
@@ -98,11 +107,11 @@ fn process_inputs(
             thrust -= action_state.clamped_value(&Action::ReverseThrust);
         }
         if action_state.pressed(&Action::Aileron) {
-            // println!("Aileron");
+            println!("Aileron");
             roll += action_state.clamped_value(&Action::Aileron);
         }
         if action_state.pressed(&Action::Elevator) {
-            // println!("Elevator");
+            println!("Elevator");
             pitch += action_state.clamped_value(&Action::Elevator);
         }
         if action_state.pressed(&Action::Rudder) {

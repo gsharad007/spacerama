@@ -6,11 +6,17 @@ use bevy::{
 
 use bevy_debug_grid::DebugGridPlugin;
 
+use crate::game::states_plugin::MainState;
+
 #[derive(Debug)]
 pub struct RenderingSetupPlugin;
 
 impl Plugin for RenderingSetupPlugin {
     fn build(&self, app: &mut App) {
+        _ = app
+            .insert_resource(DirectionalLightShadowMap { size: 4096 })
+            .add_systems(OnEnter(MainState::InGame), setup);
+
         enable_debug(app);
     }
 }
@@ -20,9 +26,7 @@ fn enable_debug(app: &mut App) {
     {
         _ = app
             .add_plugins(FrameTimeDiagnosticsPlugin)
-            .add_plugins(DebugGridPlugin::with_floor_grid())
-            .insert_resource(DirectionalLightShadowMap { size: 4096 })
-            .add_systems(Startup, setup);
+            .add_plugins(DebugGridPlugin::with_floor_grid());
     }
 }
 
@@ -34,7 +38,7 @@ fn enable_debug(app: &mut App) {
 //         .run();
 // }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands) {
     // commands.spawn((
     //     EnvironmentMapLight {
     //         diffuse_map: asset_server.load("environment_maps/pisa_diffuse_rgb9e5_zstd.ktx2"),
@@ -56,8 +60,4 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .into(),
         ..default()
     });
-    // commands.spawn(SceneBundle {
-    //     scene: asset_server.load("models/FlightHelmet/FlightHelmet.gltf#Scene0"),
-    //     ..default()
-    // });
 }
