@@ -46,7 +46,7 @@ opt-level = 1
 [lints.rust]
 unused_results = "warn"
 future-incompatible = "warn"
-# rust-2024-compatibility = "warn"
+rust-2024-compatibility = "warn"
 
 [lints.clippy]
 all = "warn"
