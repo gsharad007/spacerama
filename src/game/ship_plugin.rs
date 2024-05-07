@@ -1,9 +1,13 @@
 use core::f32::consts::FRAC_PI_2;
+use derive_more::AddAssign;
+use derive_more::Mul;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use bevy_xpbd_3d::{
-    components::{ExternalAngularImpulse, ExternalImpulse, MassPropertiesBundle, RigidBody},
+    components::{
+        AngularVelocity, ExternalAngularImpulse, ExternalImpulse, MassPropertiesBundle, RigidBody,
+    },
     plugins::collision::Collider,
 };
 
@@ -36,14 +40,9 @@ struct ShipAssets {
 }
 
 #[derive(Component)]
-pub struct Ship;
-
-// #[derive(Resource)]
-// struct ShipModelsAssets(Handle<LoadedFolder>);
-
-// fn pre_load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
-//     commands.insert_resource(ShipModelsAssets(asset_server.load("models/ships/ship_001.glb")));
-// }
+pub struct Ship {
+    auto_balance: bool,
+}
 
 #[allow(clippy::needless_pass_by_value)]
 fn setup(mut commands: Commands, ship_assets: Res<ShipAssets>, assets_mesh: Res<Assets<Mesh>>) {
@@ -58,7 +57,7 @@ fn setup(mut commands: Commands, ship_assets: Res<ShipAssets>, assets_mesh: Res<
             .expect("Failed to create collider from ship_001 mesh");
         let mass_bundle = MassPropertiesBundle::new_computed(&collider, SHIP_MASS_DENSITY_SCALE);
         _ = commands.spawn((
-            Ship,
+            Ship { auto_balance: true },
             SpatialBundle::from_transform(Transform::from_xyz(0.0, 0.0, 0.0)),
             RigidBody::Dynamic,
             collider,
@@ -72,18 +71,7 @@ fn setup(mut commands: Commands, ship_assets: Res<ShipAssets>, assets_mesh: Res<
     }
 }
 
-// #[derive(Debug)]
-// pub enum Action {
-//     ForwardThrust,
-//     ReverseThrust,
-//     Aileron,  // Roll
-//     Elevator, // Pitch
-//     Rudder,   // Yaw
-//     Action1,
-//     Action2,
-// }
-
-#[derive(Component, Debug)]
+#[derive(Component, Copy, Clone, Default, Debug, Mul, AddAssign)]
 // Define an event to represent the spawning of a bot
 pub struct ActionEventData {
     pub thrust: f32,
@@ -92,30 +80,64 @@ pub struct ActionEventData {
     pub yaw: f32,
     pub action1: f32,
     pub action2: f32,
+    pub auto_balance: f32,
 }
 
 const SHIP_MASS_DENSITY_SCALE: f32 = 0.25;
 
-const PROPULSION_THRUSTERS_STRENGTH: f32 = 10000.0;
-const ANGULAR_THRUSTERS_STRENGTH: f32 = 1000.0;
+const PROPULSION_THRUSTERS_STRENGTH: f32 = 10_000.0;
+const ANGULAR_THRUSTERS_STRENGTH: f32 = 10_000.0;
 
 #[allow(clippy::needless_pass_by_value)]
 fn process_actions(
     mut commands: Commands,
-    query: Query<(Entity, &Transform, &ActionEventData), With<Ship>>,
+    mut query: Query<
+        (
+            Entity,
+            &Transform,
+            &AngularVelocity,
+            &ActionEventData,
+            &mut Ship,
+        ),
+        With<Ship>,
+    >,
 ) {
-    for (entity, transform, action_event_data) in &query {
+    for (entity, transform, angular_velocity, action_event_data, mut ship) in &mut query {
+        if action_event_data.auto_balance.abs() > 0.5 {
+            ship.auto_balance = !ship.auto_balance;
+            println!("toggle auto_balance {0}", ship.auto_balance);
+        }
+
         let propulsion_thrusters = ExternalImpulse::new(
             transform.back() * action_event_data.thrust * PROPULSION_THRUSTERS_STRENGTH,
         );
 
+        let roll = auto_balance(
+            ship.auto_balance,
+            action_event_data.roll,
+            angular_velocity,
+            transform.back(),
+        );
+        let pitch = auto_balance(
+            ship.auto_balance,
+            action_event_data.pitch,
+            angular_velocity,
+            transform.right(),
+        );
+        let yaw = auto_balance(
+            ship.auto_balance,
+            action_event_data.yaw,
+            angular_velocity,
+            transform.down(),
+        );
+
         let mut angular_trusters = ExternalAngularImpulse::default();
         _ = angular_trusters
-            .apply_impulse(transform.back() * action_event_data.roll * ANGULAR_THRUSTERS_STRENGTH)
-            .apply_impulse(transform.right() * action_event_data.pitch * ANGULAR_THRUSTERS_STRENGTH)
-            .apply_impulse(transform.down() * action_event_data.yaw * ANGULAR_THRUSTERS_STRENGTH);
+            .apply_impulse(transform.back() * roll * ANGULAR_THRUSTERS_STRENGTH)
+            .apply_impulse(transform.right() * pitch * ANGULAR_THRUSTERS_STRENGTH)
+            .apply_impulse(transform.down() * yaw * ANGULAR_THRUSTERS_STRENGTH);
 
-        // if action_event_data.roll != 0.0 {
+        // if action_event_data.thrust != 0.0 {
         //     println!("Transform: {transform:?}");
         //     println!("ActionEventData: {action_event_data:?}");
         //     println!(
@@ -129,5 +151,23 @@ fn process_actions(
 
         // // Spawn Action1 Action2
         // commands.spawn(bundle)
+    }
+}
+
+fn auto_balance(
+    auto_balance_enabled: bool,
+    input_value: f32,
+    current_angular_velocity: &Vec3,
+    axis_vector: Direction3d,
+) -> f32 {
+    // let damping_factor = 0.5;
+
+    if auto_balance_enabled && input_value.abs() < 1e-3 {
+        // No significant user input on this axis
+        let angular_velocity_along_axis = current_angular_velocity.dot(*axis_vector);
+        // -angular_velocity_along_axis * damping_factor * strength
+        -angular_velocity_along_axis
+    } else {
+        input_value
     }
 }

@@ -30,14 +30,6 @@ fn enable_debug(app: &mut App) {
     }
 }
 
-// fn main() {
-//     App::new()
-//         .insert_resource(DirectionalLightShadowMap { size: 4096 })
-//         .add_plugins(DefaultPlugins)
-//         .add_systems(Update, animate_light_direction)
-//         .run();
-// }
-
 fn setup(mut commands: Commands) {
     // commands.spawn((
     //     EnvironmentMapLight {
