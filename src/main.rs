@@ -1,3 +1,4 @@
+mod cli;
 mod game;
 mod visual;
 
@@ -12,12 +13,18 @@ use bevy::{
     DefaultPlugins,
 };
 
+use clap::Parser;
+
+use cli::CommandLineArguments;
 use game::plugin_group::GamePluginGroup;
 use visual::plugin_group::VisualPluginGroup;
 
 // const NUM_PLAYERS: usize = 2;
 
 fn main() {
+    let args = CommandLineArguments::parse();
+    eprintln!("{args:?}");
+
     App::new()
         .add_plugins(
             DefaultPlugins
@@ -39,5 +46,6 @@ fn main() {
         )
         .add_plugins(GamePluginGroup)
         .add_plugins(VisualPluginGroup)
+        .insert_resource(args)
         .run();
 }
