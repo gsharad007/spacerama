@@ -19,14 +19,8 @@
                     "kind": "bin"
                 }
             },
-            "args": [
-                "--player-count",
-                "1"
-            ],
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "CARGO_MANIFEST_DIR": "${workspaceFolder}",
-            }
+            "args": ["--player-count", "2"],
+            "cwd": "${workspaceFolder}"
         },
         {
             "type": "lldb",
@@ -45,10 +39,7 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "CARGO_MANIFEST_DIR": "${workspaceFolder}",
-            }
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

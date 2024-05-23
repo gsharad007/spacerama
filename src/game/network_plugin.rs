@@ -1,8 +1,19 @@
+
 use bevy::prelude::*;
 
 use bevy_ggrs::{prelude::*, GgrsConfig, Session};
 
 use bevy_matchbox::{matchbox_socket::SingleChannel, prelude::*, MatchboxSocket};
+
+use bevy_ggrs::{prelude::*, GgrsConfig, Session};
+
+use crate::cli::CommandLineArguments;
+
+// The first generic parameter, u8, is the input type: 4-directions + fire fits
+// easily in a single byte
+// The second parameter is the address type of peers: Matchbox' WebRtcSocket
+// addresses are called `PeerId`s
+type Config = GgrsConfig<u8, PeerId>;
 
 use crate::cli::CommandLineArguments;
 
@@ -21,15 +32,10 @@ pub struct NetworkingPlugin;
 impl Plugin for NetworkingPlugin {
     fn build(&self, app: &mut App) {
         _ = app
-            .add_plugins(GgrsPlugin::<ActionEventDataConfig>::default())
+            .add_plugins(GgrsPlugin::<BoxConfig>::default())
             .add_systems(PreStartup, parse_commandlinearguements)
             .add_systems(Startup, start_matchbox_socket)
-            .add_systems(
-                Update,
-                wait_for_players
-                    .run_if(in_state(MainState::InGame))
-                    .run_if(in_state(InGameState::Running)),
-            );
+            .add_systems(Update, wait_for_players);
 
         enable_debug(app);
     }
@@ -89,7 +95,7 @@ fn wait_for_players(
     info!("All peers have joined, going in-game");
 
     // create a GGRS P2P session
-    let mut session_builder = SessionBuilder::<ActionEventDataConfig>::new()
+    let mut session_builder = SessionBuilder::<Config>::new()
         .with_num_players(num_players)
         .with_input_delay(2);
 

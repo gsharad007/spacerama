@@ -1,6 +1,7 @@
 [package]
 name = "spacerama"
 description = "A open world multiplayer space adventure game where the journey is the destination."
+description = "A open world multiplayer space adventure game where the journey is the destination."
 version = "0.1.0"
 edition = "2021"
 
