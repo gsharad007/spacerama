@@ -38,7 +38,7 @@ fn main() {
                 })
                 .set(RenderPlugin {
                     render_creation: RenderCreation::Automatic(WgpuSettings {
-                        backends: Some(Backends::DX12),
+                        backends: Some(Backends::VULKAN),
                         ..default()
                     }),
                     ..default()
