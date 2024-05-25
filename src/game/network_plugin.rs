@@ -6,7 +6,10 @@ use bevy_matchbox::{matchbox_socket::SingleChannel, prelude::*, MatchboxSocket};
 
 use crate::cli::CommandLineArguments;
 
-use super::{action_event_data::ActionEventData, states_plugin::{InGameState, MainState}};
+use super::{
+    action_event_data::ActionEventData,
+    states_plugin::{InGameState, MainState},
+};
 
 // The second parameter is the address type of peers: Matchbox' WebRtcSocket
 // addresses are called `PeerId`s
