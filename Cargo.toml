@@ -31,6 +31,8 @@ leafwing-input-manager = "0.14"
 
 bevy_asset_loader = "0.21"
 
+# fixed = "1.27"
+
 derive_more = "0.99"
 itertools = "0.13"
 derivative = "2.2"
