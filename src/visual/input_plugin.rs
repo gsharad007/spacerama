@@ -1,9 +1,12 @@
+use autodefault::autodefault;
 use bevy::{prelude::*, utils::HashMap};
 
+use bevy_ggrs::{LocalInputs, LocalPlayers, ReadInputs};
 use leafwing_input_manager::{buttonlike::ButtonState, prelude::*};
 
 use crate::game::{
-    ship_plugin::{ActionEventData, Ship},
+    action_event_data::ActionEventData,
+    network_plugin::ActionEventDataConfig,
     states_plugin::{FrameSystemsSet, InGameState, MainState},
 };
 
@@ -14,9 +17,10 @@ impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         _ = app
             .add_plugins(InputManagerPlugin::<Action>::default())
+            .add_systems(Startup, setup_input)
             .add_systems(
-                Update,
-                (on_ship_created_add_input, process_inputs)
+                ReadInputs,
+                process_inputs
                     .in_set(FrameSystemsSet::Input)
                     .run_if(in_state(MainState::InGame))
                     .run_if(in_state(InGameState::Running)),
@@ -80,86 +84,42 @@ fn default_input_map() -> InputMap<Action> {
 //     action_event_data: ActionEventData,
 // }
 
+#[autodefault]
 fn default_action_map() -> HashMap<Action, (ButtonState, ActionEventData)> {
     let action_map: HashMap<_, _> = [
         (
             Action::ForwardThrust,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    thrust: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { thrust: 1.0 }),
         ),
         (
             Action::ReverseThrust,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    thrust: -1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { thrust: -1.0 }),
         ),
         (
             Action::Aileron,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    roll: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { roll: 1.0 }),
         ),
         (
             Action::Elevator,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    pitch: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { pitch: 1.0 }),
         ),
         (
             Action::Rudder,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    yaw: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { yaw: 1.0 }),
         ),
         (
             Action::Action1,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    action1: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { action1: 1.0 }),
         ),
         (
             Action::Action2,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    action2: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { action2: 1.0 }),
         ),
         (
             Action::AutoBalance,
             (
                 ButtonState::JustPressed,
-                ActionEventData {
-                    auto_balance: 1.0,
-                    ..default()
-                },
+                ActionEventData { auto_balance: 1.0 },
             ),
         ),
     ]
@@ -175,37 +135,41 @@ pub struct Controlled {
     action_map: HashMap<Action, (ButtonState, ActionEventData)>,
 }
 
-#[allow(clippy::needless_pass_by_value)]
-fn on_ship_created_add_input(mut commands: Commands, query: Query<Entity, Added<Ship>>) {
-    for entity in query.iter() {
-        _ = commands.entity(entity).insert((
-            InputManagerBundle::with_map(default_input_map()),
-            Controlled {
-                action_map: default_action_map(),
-            },
-        ));
-    }
+fn setup_input(mut commands: Commands) {
+    _ = commands.spawn((
+        InputManagerBundle::with_map(default_input_map()),
+        Controlled {
+            action_map: default_action_map(),
+        },
+    ));
 }
 
 #[allow(clippy::needless_pass_by_value)]
 fn process_inputs(
     mut commands: Commands,
-    query: Query<(&ActionState<Action>, &Controlled, Entity), With<Controlled>>,
+    query: Query<(&ActionState<Action>, &Controlled), With<Controlled>>,
+    local_players: Res<LocalPlayers>,
 ) {
-    for (action_state, controlled, entity) in &query {
-        let mut action_data = ActionEventData::default();
+    for (action_state, controlled) in &query {
+        let mut local_inputs = HashMap::new();
 
-        for (action, &(button_state_expected, action_event_data)) in &controlled.action_map {
-            let action_button_state = action_state
-                .action_data(action)
-                .expect("Action data not found for the given action")
-                .state;
-            if action_state.pressed(action) && action_button_state == button_state_expected {
-                let value = action_state.clamped_value(action);
-                action_data += action_event_data * value;
+        for handle in &local_players.0 {
+            let mut action_data = ActionEventData::default();
+
+            for (action, &(button_state_expected, action_event_data)) in &controlled.action_map {
+                let action_button_state = action_state
+                    .action_data(action)
+                    .expect("Action data not found for the given action")
+                    .state;
+                if action_state.pressed(action) && action_button_state == button_state_expected {
+                    let value = action_state.clamped_value(action);
+                    action_data += action_event_data * value;
+                }
             }
+
+            _ = local_inputs.insert(*handle, action_data);
         }
 
-        _ = commands.entity(entity).insert(action_data);
+        commands.insert_resource(LocalInputs::<ActionEventDataConfig>(local_inputs));
     }
 }

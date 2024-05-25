@@ -1,9 +1,8 @@
 use core::f32::consts::FRAC_PI_2;
-use derive_more::AddAssign;
-use derive_more::Mul;
 
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
+use bevy_ggrs::{GgrsSchedule, PlayerInputs};
 use bevy_xpbd_3d::{
     components::{
         AngularVelocity, ExternalAngularImpulse, ExternalImpulse, MassPropertiesBundle, RigidBody,
@@ -11,7 +10,10 @@ use bevy_xpbd_3d::{
     plugins::collision::Collider,
 };
 
-use super::states_plugin::{FrameSystemsSet, InGameState, MainState};
+use super::{
+    network_plugin::ActionEventDataConfig,
+    states_plugin::{FrameSystemsSet, InGameState, MainState},
+};
 
 #[derive(Debug)]
 pub struct ShipPlugin;
@@ -24,7 +26,7 @@ impl Plugin for ShipPlugin {
             )
             .add_systems(OnEnter(MainState::InGame), setup)
             .add_systems(
-                Update,
+                GgrsSchedule,
                 process_actions
                     .in_set(FrameSystemsSet::Player)
                     .run_if(in_state(MainState::InGame))
@@ -71,18 +73,6 @@ fn setup(mut commands: Commands, ship_assets: Res<ShipAssets>, assets_mesh: Res<
     }
 }
 
-#[derive(Component, Copy, Clone, Default, Debug, Mul, AddAssign)]
-// Define an event to represent the spawning of a bot
-pub struct ActionEventData {
-    pub thrust: f32,
-    pub roll: f32,
-    pub pitch: f32,
-    pub yaw: f32,
-    pub action1: f32,
-    pub action2: f32,
-    pub auto_balance: f32,
-}
-
 const SHIP_MASS_DENSITY_SCALE: f32 = 0.25;
 
 const PROPULSION_THRUSTERS_STRENGTH: f32 = 10_000.0;
@@ -91,66 +81,60 @@ const ANGULAR_THRUSTERS_STRENGTH: f32 = 10_000.0;
 #[allow(clippy::needless_pass_by_value)]
 fn process_actions(
     mut commands: Commands,
-    mut query: Query<
-        (
-            Entity,
-            &Transform,
-            &AngularVelocity,
-            &ActionEventData,
-            &mut Ship,
-        ),
-        With<Ship>,
-    >,
+    mut query: Query<(Entity, &Transform, &AngularVelocity, &mut Ship), With<Ship>>,
+    inputs: Res<PlayerInputs<ActionEventDataConfig>>,
 ) {
-    for (entity, transform, angular_velocity, action_event_data, mut ship) in &mut query {
-        if action_event_data.auto_balance.abs() > 0.5 {
-            ship.auto_balance = !ship.auto_balance;
-            println!("toggle auto_balance {0}", ship.auto_balance);
+    if let Some(&(action_event_data, _)) = inputs.first() {
+        for (entity, transform, angular_velocity, mut ship) in &mut query {
+            if action_event_data.auto_balance.abs() > 0.5 {
+                ship.auto_balance = !ship.auto_balance;
+                println!("toggle auto_balance {0}", ship.auto_balance);
+            }
+
+            let propulsion_thrusters = ExternalImpulse::new(
+                transform.back() * action_event_data.thrust * PROPULSION_THRUSTERS_STRENGTH,
+            );
+
+            let roll = auto_balance(
+                ship.auto_balance,
+                action_event_data.roll,
+                angular_velocity,
+                transform.back(),
+            );
+            let pitch = auto_balance(
+                ship.auto_balance,
+                action_event_data.pitch,
+                angular_velocity,
+                transform.right(),
+            );
+            let yaw = auto_balance(
+                ship.auto_balance,
+                action_event_data.yaw,
+                angular_velocity,
+                transform.down(),
+            );
+
+            let mut angular_trusters = ExternalAngularImpulse::default();
+            _ = angular_trusters
+                .apply_impulse(transform.back() * roll * ANGULAR_THRUSTERS_STRENGTH)
+                .apply_impulse(transform.right() * pitch * ANGULAR_THRUSTERS_STRENGTH)
+                .apply_impulse(transform.down() * yaw * ANGULAR_THRUSTERS_STRENGTH);
+
+            // if action_event_data.thrust != 0.0 {
+            //     println!("Transform: {transform:?}");
+            //     println!("ActionEventData: {action_event_data:?}");
+            //     println!(
+            //         "propulsion_thrusters: {propulsion_thrusters:?}, angular_trusters: {angular_trusters:?}",
+            //     );
+            // }
+
+            _ = commands
+                .entity(entity)
+                .insert((propulsion_thrusters, angular_trusters));
+
+            // // Spawn Action1 Action2
+            // commands.spawn(bundle)
         }
-
-        let propulsion_thrusters = ExternalImpulse::new(
-            transform.back() * action_event_data.thrust * PROPULSION_THRUSTERS_STRENGTH,
-        );
-
-        let roll = auto_balance(
-            ship.auto_balance,
-            action_event_data.roll,
-            angular_velocity,
-            transform.back(),
-        );
-        let pitch = auto_balance(
-            ship.auto_balance,
-            action_event_data.pitch,
-            angular_velocity,
-            transform.right(),
-        );
-        let yaw = auto_balance(
-            ship.auto_balance,
-            action_event_data.yaw,
-            angular_velocity,
-            transform.down(),
-        );
-
-        let mut angular_trusters = ExternalAngularImpulse::default();
-        _ = angular_trusters
-            .apply_impulse(transform.back() * roll * ANGULAR_THRUSTERS_STRENGTH)
-            .apply_impulse(transform.right() * pitch * ANGULAR_THRUSTERS_STRENGTH)
-            .apply_impulse(transform.down() * yaw * ANGULAR_THRUSTERS_STRENGTH);
-
-        // if action_event_data.thrust != 0.0 {
-        //     println!("Transform: {transform:?}");
-        //     println!("ActionEventData: {action_event_data:?}");
-        //     println!(
-        //         "propulsion_thrusters: {propulsion_thrusters:?}, angular_trusters: {angular_trusters:?}",
-        //     );
-        // }
-
-        _ = commands
-            .entity(entity)
-            .insert((propulsion_thrusters, angular_trusters));
-
-        // // Spawn Action1 Action2
-        // commands.spawn(bundle)
     }
 }
 

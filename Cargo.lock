@@ -589,6 +589,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1fdabc7756949593fe60f30ec81974b613357de856987752631dea1e3394c80"
 
 [[package]]
+name = "autodefault"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "976847e448316b6cb8fda60cda1067bc645268a8209f80b96f4e1d66c1029087"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "backtrace"
 version = "0.3.71"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5131,6 +5142,7 @@ dependencies = [
 name = "spacerama"
 version = "0.1.0"
 dependencies = [
+ "autodefault",
  "bevy",
  "bevy_asset_loader",
  "bevy_debug_grid",
