@@ -1,7 +1,15 @@
+use derive_more::Display;
+
 use bevy::ecs::system::Resource;
 use clap::Parser;
 
-#[derive(Parser, Resource, Debug, Clone)]
+#[derive(Parser, Resource, Display, Clone)]
+#[display(
+    fmt = "Session Id: {}, Player Count: {}, Sync Test {}",
+    session_id,
+    player_count,
+    synctest
+)]
 #[command(version, about, long_about = None)]
 pub struct CommandLineArguments {
     /// the session id for current p2p session
