@@ -21,7 +21,7 @@ use visual::plugin_group::VisualPluginGroup;
 
 // const NUM_PLAYERS: usize = 2;
 
-fn main() {
+fn main() -> AppExit {
     let args = CommandLineArguments::parse();
     eprintln!("{args:?}");
 
@@ -47,5 +47,5 @@ fn main() {
         .add_plugins(GamePluginGroup)
         .add_plugins(VisualPluginGroup)
         .insert_resource(args)
-        .run();
+        .run()
 }

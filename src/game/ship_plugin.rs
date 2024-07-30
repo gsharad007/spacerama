@@ -158,7 +158,7 @@ fn auto_balance(
     auto_balance_enabled: bool,
     input_value: f32,
     current_angular_velocity: &Vec3,
-    axis_vector: Direction3d,
+    axis_vector: Dir3,
 ) -> f32 {
     // let damping_factor = 0.5;
 

@@ -6,30 +6,30 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.13"
+bevy = "0.14"
 
-bevy_rand = "0.6"
-bevy_prng = { version = "0.5", features = ["wyrand"] }
+bevy_rand = "0.7"
+bevy_prng = { version = "0.7", features = ["wyrand"] }
 rand_core = "0.6"
 
-bevy_xpbd_3d = "0.4"
+bevy_xpbd_3d = "0.5"
 
-bevy_ggrs = "0.15"
+bevy_ggrs = "0.16"
 # ggrs = "0.10"
-ggrs = { git = "https://github.com/gschup/ggrs.git" }
+# ggrs = { git = "https://github.com/gschup/ggrs.git" }
 bytemuck = { version = "1.7", features = ["derive"] }
 
-leafwing-input-manager = "0.13"
+leafwing-input-manager = "0.14"
 
-bevy_asset_loader = "0.20"
+bevy_asset_loader = "0.21"
 
 derive_more = "0.99"
-itertools = "0.12"
+itertools = "0.13"
 derivative = "2.2"
-clap = { version = "4.4", features = ["derive"] }
+clap = { version = "4.5", features = ["derive"] }
 
 # cfg debug
-bevy_debug_grid = "0.5"
+bevy_debug_grid = "0.6"
 
 [profile.release]
 lto = true
