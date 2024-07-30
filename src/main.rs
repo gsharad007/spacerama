@@ -23,8 +23,8 @@ use visual::plugin_group::VisualPluginGroup;
 
 fn main() -> AppExit {
     let args = CommandLineArguments::parse();
-    eprintln!("{args:?}");
-
+    println!("Command Line Arguments: {args}");
+    
     App::new()
         .add_plugins(
             DefaultPlugins

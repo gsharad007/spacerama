@@ -1,9 +1,16 @@
 [package]
 name = "spacerama"
+description = "A open world multiplayer space adventure game where the journey is the destination."
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+development = ["hot_reloading", "debug_physics"]
+debug_physics = ["bevy_xpbd_3d/debug-plugin"]
+hot_reloading = ["bevy/file_watcher"]
 
 [dependencies]
 bevy = "0.14"

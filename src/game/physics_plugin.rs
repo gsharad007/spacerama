@@ -18,7 +18,8 @@ impl Plugin for PhysicsPlugin {
 }
 
 fn enable_debug(app: &mut App) {
-    if cfg!(debug_assertions) {
+    #[cfg(feature = "debug_physics")]
+    {
         _ = app.add_plugins(PhysicsDebugPlugin::default());
     }
 }
