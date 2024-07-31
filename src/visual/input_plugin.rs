@@ -1,3 +1,4 @@
+use autodefault::autodefault;
 use bevy::{prelude::*, utils::HashMap};
 
 use leafwing_input_manager::{buttonlike::ButtonState, prelude::*};
@@ -80,86 +81,42 @@ fn default_input_map() -> InputMap<Action> {
 //     action_event_data: ActionEventData,
 // }
 
+#[autodefault]
 fn default_action_map() -> HashMap<Action, (ButtonState, ActionEventData)> {
     let action_map: HashMap<_, _> = [
         (
             Action::ForwardThrust,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    thrust: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { thrust: 1.0 }),
         ),
         (
             Action::ReverseThrust,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    thrust: -1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { thrust: -1.0 }),
         ),
         (
             Action::Aileron,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    roll: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { roll: 1.0 }),
         ),
         (
             Action::Elevator,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    pitch: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { pitch: 1.0 }),
         ),
         (
             Action::Rudder,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    yaw: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { yaw: 1.0 }),
         ),
         (
             Action::Action1,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    action1: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { action1: 1.0 }),
         ),
         (
             Action::Action2,
-            (
-                ButtonState::Pressed,
-                ActionEventData {
-                    action2: 1.0,
-                    ..default()
-                },
-            ),
+            (ButtonState::Pressed, ActionEventData { action2: 1.0 }),
         ),
         (
             Action::AutoBalance,
             (
                 ButtonState::JustPressed,
-                ActionEventData {
-                    auto_balance: 1.0,
-                    ..default()
-                },
+                ActionEventData { auto_balance: 1.0 },
             ),
         ),
     ]

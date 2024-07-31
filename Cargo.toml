@@ -35,6 +35,8 @@ itertools = "0.13"
 derivative = "2.2"
 clap = { version = "4.5", features = ["derive"] }
 
+autodefault = "2.0"
+
 # cfg debug
 bevy_debug_grid = "0.6"
 
