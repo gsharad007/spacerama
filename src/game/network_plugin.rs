@@ -22,7 +22,8 @@ impl Plugin for NetworkingPlugin {
 }
 
 fn enable_debug(_app: &mut App) {
-    if cfg!(debug_assertions) {
+    #[cfg(debug_assertions)]
+    {
         // _ = _app.add_plugins(PhysicsDebugPlugin::default());
     }
 }
