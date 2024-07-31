@@ -1,8 +1,8 @@
+use avian3d::prelude::*;
+
 use bevy::app::FixedUpdate;
 use bevy::app::{App, Plugin};
 use bevy::math::Vec3;
-use bevy_xpbd_3d::plugins::{PhysicsDebugPlugin, PhysicsPlugins};
-use bevy_xpbd_3d::resources::Gravity;
 
 #[derive(Debug)]
 pub struct PhysicsPlugin;
