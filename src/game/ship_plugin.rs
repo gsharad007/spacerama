@@ -2,14 +2,10 @@ use core::f32::consts::FRAC_PI_2;
 use derive_more::AddAssign;
 use derive_more::Mul;
 
+use avian3d::prelude::*;
+
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
-use bevy_xpbd_3d::{
-    components::{
-        AngularVelocity, ExternalAngularImpulse, ExternalImpulse, MassPropertiesBundle, RigidBody,
-    },
-    plugins::collision::Collider,
-};
 
 use super::states_plugin::{FrameSystemsSet, InGameState, MainState};
 
