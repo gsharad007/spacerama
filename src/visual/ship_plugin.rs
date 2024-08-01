@@ -1,3 +1,4 @@
+use autodefault::autodefault;
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 
@@ -31,6 +32,7 @@ struct ShipAssets {
 }
 
 #[allow(clippy::needless_pass_by_value)]
+#[autodefault]
 fn on_ship_created_add_visuals(
     mut commands: Commands,
     ship_assets: Res<ShipAssets>,
@@ -41,11 +43,9 @@ fn on_ship_created_add_visuals(
             // let mesh = Capsule3d::new(0.5, 1.5);
             _ = parent.spawn(SceneBundle {
                 scene: ship_assets.ship_001_scene.clone(),
-                ..default()
             });
             _ = parent.spawn(Camera3dBundle {
                 transform: Transform::from_xyz(0.0, 4.5, -15.0).looking_at(Vec3::ZERO, Vec3::Y),
-                ..default()
             });
         });
     }

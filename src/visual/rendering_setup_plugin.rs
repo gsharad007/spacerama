@@ -1,3 +1,4 @@
+use autodefault::autodefault;
 use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
     pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap},
@@ -30,6 +31,7 @@ fn enable_debug(app: &mut App) {
     }
 }
 
+#[autodefault]
 fn setup(mut commands: Commands) {
     // commands.spawn((
     //     EnvironmentMapLight {
@@ -42,14 +44,11 @@ fn setup(mut commands: Commands) {
     _ = commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             shadows_enabled: true,
-            ..default()
         },
         cascade_shadow_config: CascadeShadowConfigBuilder {
             num_cascades: 1,
             // maximum_distance: 16.0,
-            ..default()
         }
         .into(),
-        ..default()
     });
 }
