@@ -1,6 +1,4 @@
 use core::f32::consts::FRAC_PI_2;
-use derive_more::AddAssign;
-use derive_more::Mul;
 
 use avian3d::prelude::*;
 

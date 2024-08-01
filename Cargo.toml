@@ -26,7 +26,7 @@ bevy_ggrs = "0.16"
 # ggrs = "0.10"
 # ggrs = { git = "https://github.com/gschup/ggrs.git" }
 bytemuck = { version = "1.7", features = ["derive"] }
-bevy_matchbox = { version = "0.9", features = ["ggrs"] }
+bevy_matchbox = { version = "0.10", features = ["ggrs"] }
 
 leafwing-input-manager = "0.14"
 
