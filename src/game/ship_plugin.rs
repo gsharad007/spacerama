@@ -1,6 +1,4 @@
 use core::f32::consts::FRAC_PI_2;
-use derive_more::AddAssign;
-use derive_more::Mul;
 
 use avian3d::prelude::*;
 
@@ -8,10 +6,6 @@ use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
 use bevy_ggrs::{GgrsSchedule, PlayerInputs};
 
-use super::{
-    network_plugin::ActionEventDataConfig,
-    states_plugin::{FrameSystemsSet, InGameState, MainState},
-};
 use super::{
     network_plugin::ActionEventDataConfig,
     states_plugin::{FrameSystemsSet, InGameState, MainState},
