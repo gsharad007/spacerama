@@ -12,6 +12,10 @@ use super::{
     network_plugin::ActionEventDataConfig,
     states_plugin::{FrameSystemsSet, InGameState, MainState},
 };
+use super::{
+    network_plugin::ActionEventDataConfig,
+    states_plugin::{FrameSystemsSet, InGameState, MainState},
+};
 
 #[derive(Debug)]
 pub struct ShipPlugin;
