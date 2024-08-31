@@ -4,19 +4,6 @@ use bevy_ggrs::{prelude::*, GgrsConfig, Session};
 
 use bevy_matchbox::{matchbox_socket::SingleChannel, prelude::*, MatchboxSocket};
 
-use bevy_ggrs::{prelude::*, GgrsConfig, Session};
-
-use crate::cli::CommandLineArguments;
-
-use super::{
-    action_event_data::ActionEventData,
-    states_plugin::{InGameState, MainState},
-};
-
-// The second parameter is the address type of peers: Matchbox' WebRtcSocket
-// addresses are called `PeerId`s
-type Config = GgrsConfig<u8, PeerId>;
-
 use crate::cli::CommandLineArguments;
 
 use super::{
