@@ -1,7 +1,7 @@
 use autodefault::autodefault;
 use bevy::{prelude::*, utils::HashMap};
 
-use leafwing_input_manager::{buttonlike::ButtonState, prelude::*};
+use leafwing_input_manager::{action_state::ActionKindData, buttonlike::ButtonState, prelude::*};
 
 use crate::game::{
     ship_plugin::{ActionEventData, Ship},
@@ -42,35 +42,35 @@ const DEADZONE: f32 = 0.1;
 fn default_input_map() -> InputMap<Action> {
     let input_map = InputMap::default()
         // KeyboardMouse
-        .insert(Action::ForwardThrust, KeyCode::ShiftLeft)
-        .insert(Action::ReverseThrust, KeyCode::ControlLeft)
-        .insert(Action::Aileron, VirtualAxis::ad())
-        .insert(Action::Elevator, VirtualAxis::ws())
-        .insert(
+        .with(Action::ForwardThrust, KeyCode::ShiftLeft)
+        .with(Action::ReverseThrust, KeyCode::ControlLeft)
+        .with(Action::Aileron, KeyboardVirtualAxis::AD)
+        .with(Action::Elevator, KeyboardVirtualAxis::WS)
+        .with(
             Action::Rudder,
-            VirtualAxis::from_keys(KeyCode::KeyQ, KeyCode::KeyE),
+            KeyboardVirtualAxis::from_keys(KeyCode::KeyQ, KeyCode::KeyE),
         )
-        .insert(Action::Action1, MouseButton::Right)
-        .insert(Action::Action2, MouseButton::Left)
-        .insert(Action::AutoBalance, KeyCode::KeyB)
+        .with(Action::Action1, MouseButton::Right)
+        .with(Action::Action2, MouseButton::Left)
+        .with(Action::AutoBalance, KeyCode::KeyB)
         // Gamepad
-        .insert(Action::ForwardThrust, GamepadButtonType::RightTrigger2)
-        .insert(Action::ReverseThrust, GamepadButtonType::LeftTrigger2)
-        .insert(
+        .with(Action::ForwardThrust, GamepadButtonType::RightTrigger2)
+        .with(Action::ReverseThrust, GamepadButtonType::LeftTrigger2)
+        .with_axis(
             Action::Aileron,
-            SingleAxis::symmetric(GamepadAxisType::LeftStickX, DEADZONE),
+            GamepadControlAxis::LEFT_X.with_deadzone_symmetric(DEADZONE),
         )
-        .insert(
+        .with_axis(
             Action::Elevator,
-            SingleAxis::symmetric(GamepadAxisType::LeftStickY, DEADZONE),
+            GamepadControlAxis::LEFT_Y.with_deadzone_symmetric(DEADZONE),
         )
-        .insert(
+        .with_axis(
             Action::Rudder,
-            SingleAxis::symmetric(GamepadAxisType::RightStickX, DEADZONE),
+            GamepadControlAxis::RIGHT_X.with_deadzone_symmetric(DEADZONE),
         )
-        .insert(Action::Action1, GamepadButtonType::RightTrigger)
-        .insert(Action::Action2, GamepadButtonType::LeftTrigger)
-        .build();
+        .with(Action::Action1, GamepadButtonType::RightTrigger)
+        .with(Action::Action2, GamepadButtonType::LeftTrigger);
+    // .build();
 
     input_map
 }
@@ -153,13 +153,16 @@ fn process_inputs(
         let mut action_data = ActionEventData::default();
 
         for (action, &(button_state_expected, action_event_data)) in &controlled.action_map {
-            let action_button_state = action_state
+            if let ActionKindData::Button(action_button_data) = &action_state
                 .action_data(action)
                 .expect("Action data not found for the given action")
-                .state;
-            if action_state.pressed(action) && action_button_state == button_state_expected {
-                let value = action_state.clamped_value(action);
-                action_data += action_event_data * value;
+                .kind_data
+            {
+                let action_button_state = action_button_data.state;
+                if action_state.pressed(action) && action_button_state == button_state_expected {
+                    let value = action_state.clamped_value(action);
+                    action_data += action_event_data * value;
+                }
             }
         }
 

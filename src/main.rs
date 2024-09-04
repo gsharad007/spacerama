@@ -1,6 +1,8 @@
 mod cli;
 mod game;
 mod visual;
+mod server;
+mod networking_shared;
 
 use autodefault::autodefault;
 use bevy::prelude::*;

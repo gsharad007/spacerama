@@ -21,16 +21,23 @@ rand_core = "0.6"
 
 avian3d = "0.1"
 
-bevy_ggrs = "0.16"
-# ggrs = "0.10"
+# Shelving in favor of Naia since it is more full featured and gets me up and running faster
+# bevy_ggrs = "0.15"
+# # ggrs = "0.10"
 # ggrs = { git = "https://github.com/gschup/ggrs.git" }
-bytemuck = { version = "1.7", features = ["derive"] }
+# bytemuck = { version = "1.7", features = ["derive"] }
 
-leafwing-input-manager = "0.14"
+naia-bevy-server = "0.22"  # Check for the latest version
+naia-bevy-client = "0.22"  # Check for the latest version
+naia-bevy-shared = "0.22"  # Check for the latest version
+# serde = { version = "1.0", features = ["derive"] }
+# serde_json = "1.0"
+
+leafwing-input-manager = "0.15"
 
 bevy_asset_loader = "0.21"
 
-derive_more = "0.99"
+derive_more = { version = "1", features = ["mul", "add_assign", "display"] }
 itertools = "0.13"
 derivative = "2.2"
 clap = { version = "4.5", features = ["derive"] }
