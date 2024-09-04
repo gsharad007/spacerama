@@ -4,12 +4,14 @@ use bevy::app::ScheduleRunnerPlugin;
 use bevy::log::LogPlugin;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+
 use naia_bevy_server::transport::Socket;
-use naia_bevy_server::{Plugin as NaiaServerPlugin, ReceiveEvents, ServerConfig};
+use naia_bevy_server::{Plugin as NaiaServerPlugin, ReceiveEvents, Server, ServerConfig};
+use naia_bevy_server::{RoomKey, UserKey};
 
-use naia_bevy_server::{RoomKey, UserKey, ServerAddrs};
+use systems::{events, init};
 
-use crate::networking_shared::protocol;
+use crate::networking_shared::protocol::protocol;
 
 #[derive(Debug)]
 pub struct ServerPlugin;
@@ -60,7 +62,7 @@ pub struct Global {
     pub square_to_user_map: HashMap<Entity, UserKey>,
 }
 
-#[derive(Resource, Debug)]
+#[derive(Resource)]
 struct Lobby {
     room_key: RoomKey,
 }
