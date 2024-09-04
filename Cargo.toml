@@ -37,7 +37,7 @@ leafwing-input-manager = "0.15"
 
 bevy_asset_loader = "0.21"
 
-derive_more = "1.0"
+derive_more = { version = "1", features = ["mul", "add_assign", "display"] }
 itertools = "0.13"
 derivative = "2.2"
 clap = { version = "4.5", features = ["derive"] }
