@@ -8,7 +8,7 @@ use super::{
     states_plugin::StatesPlugin,
 };
 
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions, reason = "This is a plugin group for the game")]
 pub struct GamePluginGroup;
 
 impl PluginGroup for GamePluginGroup {

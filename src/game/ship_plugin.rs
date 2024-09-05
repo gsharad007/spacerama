@@ -40,7 +40,7 @@ pub struct Ship {
     auto_balance: bool,
 }
 
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "Bevy System syntax")]
 fn setup(mut commands: Commands, ship_assets: Res<ShipAssets>, assets_mesh: Res<Assets<Mesh>>) {
     // Spaceship setup
     if let Some(ship_001) = assets_mesh.get(&ship_assets.ship_001_main) {
@@ -84,7 +84,7 @@ const SHIP_MASS_DENSITY_SCALE: f32 = 0.25;
 const PROPULSION_THRUSTERS_STRENGTH: f32 = 10_000.0;
 const ANGULAR_THRUSTERS_STRENGTH: f32 = 10_000.0;
 
-#[allow(clippy::needless_pass_by_value)]
+// #[expect(clippy::needless_pass_by_value, reason = "Bevy System syntax")]
 fn process_actions(
     mut commands: Commands,
     mut query: Query<
