@@ -21,16 +21,15 @@ rand_core = "0.6"
 
 avian3d = "0.1"
 
-bevy_ggrs = "0.16"
-# ggrs = "0.10"
-# ggrs = { git = "https://github.com/gschup/ggrs.git" }
-bytemuck = { version = "1.7", features = ["derive"] }
-
+# leafwing 0.15 seems to have a bunch of breaking issues in the new version in
+# regards to axis handling and button being exclusive yet no way to map triggers
+# and other analog gamepad buttons to axis or allow keyboard buttons to map to
+# the same actions.
 leafwing-input-manager = "0.14"
 
 bevy_asset_loader = "0.21"
 
-derive_more = "0.99"
+derive_more = { version = "1.0", features = ["add_assign", "mul", "display"] }
 itertools = "0.13"
 derivative = "2.2"
 clap = { version = "4.5", features = ["derive"] }

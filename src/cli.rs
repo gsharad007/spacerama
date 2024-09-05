@@ -5,7 +5,7 @@ use clap::Parser;
 
 #[derive(Parser, Resource, Display, Clone)]
 #[display(
-    fmt = "Session Id: {}, Player Count: {}, Sync Test: {}",
+    "Session Id: {}, Player Count: {}, Sync Test: {}",
     session_id,
     player_count,
     synctest
