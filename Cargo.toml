@@ -58,10 +58,10 @@ future-incompatible = "warn"
 rust-2024-compatibility = "warn"
 
 [lints.clippy]
-all = "warn"
-pedantic = "warn"
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
 # restriction = "warn"
-nursery = "warn"
+nursery = { level = "warn", priority = -1 }
 # cargo = "warn"
 # separated_literal_suffix = "allow"
 # implicit_return = "allow"
@@ -79,3 +79,4 @@ absolute-paths = "warn"
 
 # For Prototyping only
 missing-docs-in-private-items = "allow"
+missing_trait_methods = "allow"
