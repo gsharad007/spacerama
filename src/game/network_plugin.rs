@@ -5,7 +5,6 @@ pub struct NetworkingPlugin;
 
 impl Plugin for NetworkingPlugin {
     fn build(&self, app: &mut App) {
-
         enable_debug(app);
     }
 }
