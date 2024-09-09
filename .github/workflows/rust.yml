@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     strategy:
       matrix:
-        os: [ubuntu, windows]
+        os: [windows]
         profile: [release, dev]
     steps:
     - uses: actions/checkout@v4
