@@ -11,12 +11,19 @@ env:
 
 jobs:
   build:
-
-    runs-on: windows-latest
-
+    runs-on: ${{ matrix.os }}-latest
+    strategy:
+      matrix:
+        os: [windows]
+        profile: [release, dev]
     steps:
     - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
+    - uses: actions-rs/toolchain@master
+      with:
+        profile: minimal
+        toolchain: beta
+        override: true
     - name: Run tests
       run: cargo test --verbose
+    - name: Build
+      run: cargo build --profile ${{ matrix.profile }} --verbose

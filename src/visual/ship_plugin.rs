@@ -31,7 +31,7 @@ struct ShipAssets {
     ship_001_scene: Handle<Scene>,
 }
 
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "Bevy System syntax")]
 #[autodefault]
 fn on_ship_created_add_visuals(
     mut commands: Commands,

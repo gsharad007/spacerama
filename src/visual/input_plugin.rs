@@ -132,7 +132,7 @@ pub struct Controlled {
     action_map: HashMap<Action, (ButtonState, ActionEventData)>,
 }
 
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "Bevy System syntax")]
 fn on_ship_created_add_input(mut commands: Commands, query: Query<Entity, Added<Ship>>) {
     for entity in query.iter() {
         _ = commands.entity(entity).insert((
@@ -144,7 +144,7 @@ fn on_ship_created_add_input(mut commands: Commands, query: Query<Entity, Added<
     }
 }
 
-#[allow(clippy::needless_pass_by_value)]
+#[expect(clippy::needless_pass_by_value, reason = "Bevy System syntax")]
 fn process_inputs(
     mut commands: Commands,
     query: Query<(&ActionState<Action>, &Controlled, Entity), With<Controlled>>,
