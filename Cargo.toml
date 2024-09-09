@@ -1,3 +1,5 @@
+cargo-features = ["test-dummy-unstable"]
+
 [package]
 name = "spacerama"
 description = "A open world multiplayer space adventure game where the journey is the destination."
