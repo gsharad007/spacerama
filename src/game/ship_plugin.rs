@@ -1,3 +1,4 @@
+use autodefault::autodefault;
 use core::f32::consts::FRAC_PI_2;
 use derive_more::AddAssign;
 use derive_more::Mul;
@@ -38,6 +39,43 @@ struct ShipAssets {
 #[derive(Component)]
 pub struct Ship {
     auto_balance: bool,
+    color: Color,
+}
+
+// Player
+#[derive(Bundle)]
+pub struct ShipBundle {
+    ship: Ship,
+    spatial: SpatialBundle,
+    rigid_body: RigidBody,
+    collider: Collider,
+    mass_properties: MassPropertiesBundle,
+}
+
+impl ShipBundle {
+    fn new(mesh: &Mesh, color: Color) -> Self {
+        let ship = Ship {
+            auto_balance: true,
+            color,
+        };
+        let spatial = SpatialBundle::from_transform(Transform::from_xyz(0.0, 0.0, 0.0));
+        let collider = Collider::convex_decomposition_from_mesh(&mesh)
+            .expect("Failed to create collider from ship_001 mesh");
+        let mass_properties =
+            MassPropertiesBundle::new_computed(&collider, SHIP_MASS_DENSITY_SCALE);
+        Self {
+            ship,
+            spatial,
+            rigid_body: RigidBody::Dynamic,
+            collider,
+            mass_properties,
+            // CollisionLayers::new([Layer::Bots], [Layer::Ground, Layer::Constructed]), // Bots collides with ground, and constructed layers
+            // Friction::new(0.0),
+            // Restitution::new(0.0).with_combine_rule(CoefficientCombine::Multiply),
+            // LinearDamping(0.2),
+            // AngularDamping(0.2),
+        }
+    }
 }
 
 #[expect(clippy::needless_pass_by_value, reason = "Bevy System syntax")]
@@ -46,24 +84,16 @@ fn setup(mut commands: Commands, ship_assets: Res<ShipAssets>, assets_mesh: Res<
     if let Some(ship_001) = assets_mesh.get(&ship_assets.ship_001_main) {
         // let collider = Collider::capsule(4.0, 1.0);
         // let collider = Collider::round_cuboid(10.5, 10.5, 5.5, 0.5);
+        // Generate pseudo random color from client id.
+        let h = 0.0; // (((mesh.to_bits().wrapping_mul(30)) % 360) as f32) / 360.0;
+        let s = 0.8;
+        let l = 0.5;
+        let color = Color::hsl(h, s, l);
+
         let mesh = ship_001
             .clone()
             .transformed_by(Transform::from_rotation(Quat::from_rotation_y(FRAC_PI_2)));
-        let collider = Collider::convex_decomposition_from_mesh(&mesh)
-            .expect("Failed to create collider from ship_001 mesh");
-        let mass_bundle = MassPropertiesBundle::new_computed(&collider, SHIP_MASS_DENSITY_SCALE);
-        _ = commands.spawn((
-            Ship { auto_balance: true },
-            SpatialBundle::from_transform(Transform::from_xyz(0.0, 0.0, 0.0)),
-            RigidBody::Dynamic,
-            collider,
-            mass_bundle,
-            // CollisionLayers::new([Layer::Bots], [Layer::Ground, Layer::Constructed]), // Bots collides with ground, and constructed layers
-            // Friction::new(0.0),
-            // Restitution::new(0.0).with_combine_rule(CoefficientCombine::Multiply),
-            // LinearDamping(0.2),
-            // AngularDamping(0.2),
-        ));
+        _ = commands.spawn(ShipBundle::new(&mesh, color));
     }
 }
 
