@@ -20,7 +20,7 @@ impl Plugin for ShipPlugin {
             )
             .add_systems(OnEnter(MainState::InGame), setup)
             .add_systems(
-                Update,
+                FixedUpdate,
                 process_actions
                     .in_set(FrameSystemsSet::Player)
                     .run_if(in_state(MainState::InGame))

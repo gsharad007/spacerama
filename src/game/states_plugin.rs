@@ -20,6 +20,17 @@ impl Plugin for StatesPlugin {
                     .run_if(in_state(MainState::InGame))
                     .run_if(in_state(InGameState::Running)),
             )
+            .configure_sets(
+                FixedUpdate,
+                (
+                    FrameSystemsSet::World.before(FrameSystemsSet::Input),
+                    FrameSystemsSet::Input.before(FrameSystemsSet::Player),
+                    FrameSystemsSet::Player.before(FrameSystemsSet::Physics),
+                    FrameSystemsSet::Physics,
+                )
+                    .run_if(in_state(MainState::InGame))
+                    .run_if(in_state(InGameState::Running)),
+            )
             .add_loading_state(
                 LoadingState::new(MainState::Loading).continue_to_state(MainState::InGame),
             );

@@ -17,7 +17,7 @@ impl Plugin for ShipPlugin {
                 LoadingStateConfig::new(MainState::Loading).load_collection::<ShipAssets>(),
             )
             .add_systems(
-                Update,
+                FixedUpdate,
                 on_ship_created_add_visuals
                     .run_if(in_state(MainState::InGame))
                     .run_if(in_state(InGameState::Running)),

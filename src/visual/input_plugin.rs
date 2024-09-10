@@ -16,7 +16,7 @@ impl Plugin for InputPlugin {
         _ = app
             .add_plugins(InputManagerPlugin::<Action>::default())
             .add_systems(
-                Update,
+                FixedUpdate,
                 (on_ship_created_add_input, process_inputs)
                     .in_set(FrameSystemsSet::Input)
                     .run_if(in_state(MainState::InGame))
