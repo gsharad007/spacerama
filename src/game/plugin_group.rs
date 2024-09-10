@@ -2,13 +2,18 @@ use bevy::{
     app::{PluginGroup, PluginGroupBuilder},
     diagnostic::LogDiagnosticsPlugin,
 };
+use bevy_prng::WyRand;
+use bevy_rand::plugin::EntropyPlugin;
 
 use super::{
     network_plugin::NetworkingPlugin, physics_plugin::PhysicsPlugin, ship_plugin::ShipPlugin,
     states_plugin::StatesPlugin,
 };
 
-#[expect(clippy::module_name_repetitions, reason = "This is a plugin group for the game")]
+#[expect(
+    clippy::module_name_repetitions,
+    reason = "This is a plugin group for the game"
+)]
 pub struct GamePluginGroup;
 
 impl PluginGroup for GamePluginGroup {
@@ -19,5 +24,6 @@ impl PluginGroup for GamePluginGroup {
             .add(NetworkingPlugin)
             .add(ShipPlugin)
             .add(LogDiagnosticsPlugin::default())
+            .add(EntropyPlugin::<WyRand>::default())
     }
 }

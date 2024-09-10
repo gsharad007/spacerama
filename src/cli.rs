@@ -1,25 +1,61 @@
-use derive_more::Display;
+use std::fmt::{Debug, Display, Formatter, Result};
 
 use bevy::ecs::system::Resource;
+
 use clap::Parser;
+use rand::RngCore;
 
-#[derive(Parser, Resource, Display, Clone)]
-#[display(
-    "Session Id: {}, Player Count: {}, Sync Test: {}",
-    session_id,
-    player_count,
-    synctest
-)]
+#[derive(Parser, Resource, Clone, Debug)]
 #[command(version, about, long_about = None)]
-pub struct CommandLineArguments {
-    /// the session id for current p2p session
-    #[clap(long, default_value = "spacerama")]
-    pub session_id: String,
-    /// the number of players for current p2p session
-    #[clap(long, default_value = "1")]
-    pub player_count: u8,
+pub enum CommandLineArguments {
+    /// We have the client and the server running inside the same app.
+    /// The server will also act as a client. (i.e. one client acts as the 'host')
+    HostServer {
+        #[arg(short, long, default_value_t = random_client_id())]
+        client_id: u64,
+    },
+    /// We will create two apps: a client app and a server app.
+    /// Data gets passed between the two via channels.
+    ServerAndClient {
+        #[arg(short, long, default_value_t = random_client_id())]
+        client_id: u64,
+    },
+    /// Dedicated server
+    Server,
+    /// The program will act as a client
+    Client {
+        #[arg(short, long, default_value_t = random_client_id())]
+        client_id: u64,
+    },
+}
 
-    /// runs the game in synctest mode
-    #[clap(long)]
-    pub synctest: bool,
+// Implementing Default for CommandLineArguments
+impl Default for CommandLineArguments {
+    fn default() -> Self {
+        // Default to `HostServer` to make it default to standalone game
+        #[cfg(target_family = "wasm")]
+        {
+            // Default to `Client` on wasm target
+            Self::Client {
+                client_id: random_client_id(),
+            }
+        }
+        {
+            Self::HostServer {
+                client_id: random_client_id(),
+            }
+        }
+    }
+}
+
+// Implementing Display for CommandLineArguments
+impl Display for CommandLineArguments {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        Debug::fmt(self, f)
+    }
+}
+
+// Function to generate a random client_id using bevy_rand
+fn random_client_id() -> u64 {
+    rand::thread_rng().next_u64()
 }
