@@ -1,4 +1,3 @@
-use autodefault::autodefault;
 use core::f32::consts::FRAC_PI_2;
 use derive_more::AddAssign;
 use derive_more::Mul;
@@ -59,7 +58,7 @@ impl ShipBundle {
             color,
         };
         let spatial = SpatialBundle::from_transform(Transform::from_xyz(0.0, 0.0, 0.0));
-        let collider = Collider::convex_decomposition_from_mesh(&mesh)
+        let collider = Collider::convex_decomposition_from_mesh(mesh)
             .expect("Failed to create collider from ship_001 mesh");
         let mass_properties =
             MassPropertiesBundle::new_computed(&collider, SHIP_MASS_DENSITY_SCALE);
