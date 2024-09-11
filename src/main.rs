@@ -25,6 +25,9 @@ fn main() -> AppExit {
     let args = CommandLineArguments::parse();
     println!("Command Line Arguments: {args}");
 
+    let compile_settigs = game::network_plugin::compile_config::read_compile_settings();
+    println!("Compile Settings: {compile_settigs:?}");
+
     App::new()
         .add_plugins(
             DefaultPlugins

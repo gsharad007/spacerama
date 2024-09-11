@@ -1,3 +1,5 @@
+pub mod compile_config;
+
 use bevy::app::{App, Plugin};
 
 #[derive(Debug)]

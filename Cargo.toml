@@ -14,7 +14,7 @@ debug_physics = ["avian3d/debug-plugin"]
 hot_reloading = ["bevy/file_watcher"]
 
 [dependencies]
-bevy = "0.14"
+bevy = "0.14.2"
 
 bevy_rand = "0.7"
 bevy_prng = { version = "0.7", features = ["wyrand"] }
@@ -35,6 +35,11 @@ derive_more = { version = "1.0", features = ["add_assign", "mul", "display"] }
 itertools = "0.13"
 derivative = "2.2"
 clap = { version = "4.5", features = ["derive"] }
+
+lightyear = "0.17"
+
+serde = { version = "1.0", features = ["derive"] }
+# serde_json = "1.0"
 
 autodefault = "2.0"
 
