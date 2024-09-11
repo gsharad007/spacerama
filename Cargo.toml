@@ -8,7 +8,8 @@ edition = "2021"
 
 [features]
 default = []
-development = ["hot_reloading", "debug_physics"]
+development = ["hot_reloading", "debug_physics", "inspector"]
+inspector = []
 debug_physics = ["avian3d/debug-plugin"]
 hot_reloading = ["bevy/file_watcher"]
 
@@ -39,6 +40,9 @@ autodefault = "2.0"
 
 # cfg debug
 bevy_debug_grid = "0.6"
+
+# cfg editor
+bevy-inspector-egui = "0.25"
 
 [profile.release]
 lto = true

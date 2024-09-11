@@ -5,8 +5,6 @@ use bevy::{
     prelude::*,
 };
 
-use bevy_debug_grid::DebugGridPlugin;
-
 use crate::game::states_plugin::MainState;
 
 #[derive(Debug)]
@@ -25,9 +23,7 @@ impl Plugin for RenderingSetupPlugin {
 fn enable_debug(app: &mut App) {
     #[cfg(debug_assertions)]
     {
-        _ = app
-            .add_plugins(FrameTimeDiagnosticsPlugin)
-            .add_plugins(DebugGridPlugin::with_floor_grid());
+        _ = app.add_plugins(FrameTimeDiagnosticsPlugin);
     }
 }
 
