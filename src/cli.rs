@@ -32,7 +32,6 @@ pub enum CommandLineArguments {
 // Implementing Default for CommandLineArguments
 impl Default for CommandLineArguments {
     fn default() -> Self {
-        // Default to `HostServer` to make it default to standalone game
         #[cfg(target_family = "wasm")]
         {
             // Default to `Client` on wasm target
@@ -41,6 +40,7 @@ impl Default for CommandLineArguments {
             }
         }
         {
+            // Default to `HostServer` to make it default to standalone game
             Self::HostServer {
                 client_id: random_client_id(),
             }
