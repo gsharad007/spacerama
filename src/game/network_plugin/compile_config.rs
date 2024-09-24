@@ -32,32 +32,32 @@ pub struct Settings {
     /// This is what is done by RocketLeague (see [video](https://www.youtube.com/watch?v=ueEmiDM94IE))
     ///
     /// If false, we will predict the client's entities but simple interpolate everything else.
-    pub(crate) predict_all: bool,
+    pub predict_all: bool,
 
     /// By how many ticks an input press will be delayed before we apply client-prediction?
     ///
     /// This can be useful as a tradeoff between input delay and prediction accuracy.
     /// If the input delay is greater than the RTT, then there won't ever be any mispredictions/rollbacks.
     /// See [this article](https://www.snapnet.dev/docs/core-concepts/input-delay-vs-rollback/) for more information.
-    pub(crate) input_delay_ticks: u16,
+    pub input_delay_ticks: u16,
 
     /// What is the maximum number of ticks that we will rollback for?
     /// After applying input delay, we will try cover `max_prediction_ticks` ticks of latency using client-side prediction
     /// Any more latency beyond that will use more input delay.
-    pub(crate) max_prediction_ticks: u16,
+    pub max_prediction_ticks: u16,
 
     /// If visual correction is enabled, we don't instantly snapback to the corrected position
     /// when we need to rollback. Instead we interpolated between the current position and the
     /// corrected position.
     /// This controls the duration of the interpolation; the higher it is, the longer the interpolation
     /// will take
-    pub(crate) correction_ticks_factor: f32,
+    pub correction_ticks_factor: f32,
 
     /// If true, we will also show the Confirmed entities (on top of the Predicted entities)
-    pub(crate) show_confirmed: bool,
+    pub show_confirmed: bool,
 
     /// Sets server replication send interval in both client and server configs
-    pub(crate) server_replication_send_interval: u64,
+    pub server_replication_send_interval: u64,
 }
 
 #[derive(Resource, Debug, Clone, Deserialize, Serialize)]
@@ -70,10 +70,10 @@ pub struct CommonSettings {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ServerSettings {
     /// If true, disable any rendering-related plugins
-    pub(crate) headless: bool,
+    pub headless: bool,
 
     /// Possibly add a conditioner to simulate network conditions
-    pub(crate) conditioner: Option<Conditioner>,
+    pub conditioner: Option<Conditioner>,
 
     /// Which transport to use
     pub transport: Vec<ServerTransports>,
@@ -82,10 +82,10 @@ pub struct ServerSettings {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ClientSettings {
     /// The client id
-    pub(crate) client_id: u64,
+    pub client_id: u64,
 
     /// The client port to listen on
-    pub(crate) client_port: u16,
+    pub client_port: u16,
 
     /// The ip address of the server
     pub server_addr: Ipv4Addr,
@@ -94,10 +94,10 @@ pub struct ClientSettings {
     pub server_port: u16,
 
     /// Possibly add a conditioner to simulate network conditions
-    pub(crate) conditioner: Option<Conditioner>,
+    pub conditioner: Option<Conditioner>,
 
     /// Which transport to use
-    pub(crate) transport: ClientTransports,
+    pub transport: ClientTransports,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
@@ -109,17 +109,17 @@ pub struct SharedSettings {
     pub private_key: [u8; 32],
 
     /// compression options
-    pub(crate) compression: CompressionConfig,
+    pub compression: CompressionConfig,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Conditioner {
     /// One way latency in milliseconds
-    pub(crate) latency_ms: u16,
+    pub latency_ms: u16,
     /// One way jitter in milliseconds
-    pub(crate) jitter_ms: u16,
+    pub jitter_ms: u16,
     /// Percentage of packet loss
-    pub(crate) packet_loss: f32,
+    pub packet_loss: f32,
 }
 
 impl Conditioner {
