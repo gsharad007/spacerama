@@ -8,8 +8,8 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 use lightyear::prelude::client::Authentication;
-// #[cfg(not(target_family = "wasm"))]
-// use lightyear::prelude::client::{SocketConfig, SteamConfig};
+#[cfg(not(target_family = "wasm"))]
+use lightyear::prelude::client::*;
 use lightyear::prelude::{CompressionConfig, LinkConditionerConfig};
 
 use lightyear::prelude::*;
@@ -81,9 +81,6 @@ pub struct ServerSettings {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ClientSettings {
-    /// The client id
-    pub client_id: u64,
-
     /// The client port to listen on
     pub client_port: u16,
 
@@ -136,14 +133,12 @@ impl Conditioner {
 pub enum ClientTransports {
     #[cfg(not(target_family = "wasm"))]
     Udp,
-    WebTransport {
-        certificate_digest: String,
-    },
+    #[cfg(feature = "webtransport")]
+    WebTransport { certificate_digest: String },
+    #[cfg(feature = "websocket")]
     WebSocket,
-    #[cfg(not(target_family = "wasm"))]
-    Steam {
-        app_id: u32,
-    },
+    #[cfg(all(feature = "steam", not(target_family = "wasm")))]
+    Steam { app_id: u32 },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -151,13 +146,15 @@ pub enum ServerTransports {
     Udp {
         local_port: u16,
     },
+    #[cfg(feature = "webtransport")]
     WebTransport {
         local_port: u16,
     },
+    #[cfg(feature = "websocket")]
     WebSocket {
         local_port: u16,
     },
-    #[cfg(not(target_family = "wasm"))]
+    #[cfg(all(feature = "steam", not(target_family = "wasm")))]
     Steam {
         app_id: u32,
         server_ip: Ipv4Addr,

@@ -1,6 +1,9 @@
+mod apps;
 mod cli;
 mod game;
 mod visual;
+
+use std::time::Duration;
 
 use autodefault::autodefault;
 use bevy::prelude::*;
@@ -16,6 +19,7 @@ use bevy::{
 
 use clap::Parser;
 
+use apps::Apps;
 use cli::CommandLineArguments;
 use game::plugin_group::GamePluginGroup;
 use visual::plugin_group::VisualPluginGroup;
@@ -25,8 +29,13 @@ fn main() -> AppExit {
     let args = CommandLineArguments::parse();
     println!("Command Line Arguments: {args}");
 
-    let compile_settigs = game::network_plugin::compile_config::read_compile_settings();
-    println!("Compile Settings: {compile_settigs:?}");
+    let compile_network_settigs = game::network_plugin::compile_config::read_compile_settings();
+    println!("Compile Settings: {compile_network_settigs:?}");
+
+    let mut apps = Apps::new(compile_network_settigs.common, args.clone())
+        .with_server_replication_send_interval(Duration::from_millis(
+            compile_network_settigs.server_replication_send_interval,
+        ));
 
     App::new()
         .add_plugins(

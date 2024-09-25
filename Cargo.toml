@@ -12,6 +12,9 @@ development = ["hot_reloading", "debug_physics", "inspector"]
 inspector = []
 debug_physics = ["avian3d/debug-plugin"]
 hot_reloading = ["bevy/file_watcher"]
+steam = ["lightyear/steam"]
+webtransport = ["lightyear/webtransport"]
+websocket = ["lightyear/websocket"]
 
 [dependencies]
 bevy = "0.14.2"
@@ -37,6 +40,8 @@ derivative = "2.2"
 clap = { version = "4.5", features = ["derive"] }
 
 lightyear = "0.17"
+async-compat = "0.2.3"
+crossbeam-channel = "0.5.12"
 
 serde = { version = "1.0", features = ["derive"] }
 # serde_json = "1.0"
