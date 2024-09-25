@@ -14,9 +14,9 @@ use super::{
     clippy::module_name_repetitions,
     reason = "This is a plugin group for the game"
 )]
-pub struct GamePluginGroup;
+pub struct GamePlugins;
 
-impl PluginGroup for GamePluginGroup {
+impl PluginGroup for GamePlugins {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
             .add(StatesPlugin)

@@ -18,8 +18,8 @@ use lightyear::prelude::{CompressionConfig, LinkConditionerConfig};
 
 use lightyear::prelude::{client, server};
 
-use super::compile_config::ServerTransports;
-use super::compile_config::{ClientTransports, CommonSettings, Conditioner, SharedSettings};
+use super::compiled_config::ServerTransports;
+use super::compiled_config::{ClientTransports, CommonSettings, Conditioner, SharedSettings};
 
 #[allow(dead_code)]
 pub(crate) fn build_server_netcode_config(

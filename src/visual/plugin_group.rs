@@ -10,9 +10,9 @@ use crate::visual::input_plugin::InputPlugin;
     clippy::module_name_repetitions,
     reason = "This is a plugin group for the visual part of the game"
 )]
-pub struct VisualPluginGroup;
+pub struct VisualPlugins;
 
-impl PluginGroup for VisualPluginGroup {
+impl PluginGroup for VisualPlugins {
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
             .add(RenderingSetupPlugin)

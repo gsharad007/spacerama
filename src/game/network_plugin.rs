@@ -1,4 +1,4 @@
-pub mod compile_config;
+pub mod compiled_config;
 pub mod network_config;
 pub mod shared_config;
 

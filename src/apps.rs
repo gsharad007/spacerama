@@ -1,27 +1,30 @@
 use std::net::SocketAddr;
-use std::str::FromStr;
 use std::time::Duration;
 
-use bevy::asset::ron;
+use autodefault::autodefault;
+use bevy::app::PluginGroupBuilder;
 use bevy::log::{Level, LogPlugin};
 use bevy::prelude::*;
-use bevy::render::RenderPlugin;
-use bevy::scene::ScenePlugin;
 use bevy::state::app::StatesPlugin;
-use bevy::winit::{WakeUp, WinitPlugin};
 use bevy::DefaultPlugins;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use clap::{Parser, ValueEnum};
+use bevy::{
+    app::App,
+    render::{
+        settings::{Backends, RenderCreation, WgpuSettings},
+        RenderPlugin,
+    },
+    window::{Window, WindowPlugin},
+};
+
+use lightyear::prelude::client::PredictionConfig;
 use lightyear::prelude::client::ClientConfig;
 use lightyear::prelude::*;
 use lightyear::prelude::{client, server};
 use lightyear::server::config::ServerConfig;
-use lightyear::shared::log::add_log_layer;
 use lightyear::transport::LOCAL_SOCKET;
-use serde::{Deserialize, Serialize};
 
 use crate::cli::CommandLineArguments;
-use crate::game::network_plugin::compile_config::{CommonSettings, Settings};
+use crate::game::network_plugin::compiled_config::{CommonSettings, Settings};
 use crate::game::network_plugin::network_config::{
     build_client_netcode_config, get_client_net_config,
 };
@@ -29,10 +32,85 @@ use crate::game::network_plugin::network_config::{
     build_server_netcode_config, get_server_net_configs,
 };
 use crate::game::network_plugin::shared_config::{shared_config, REPLICATION_INTERVAL};
+use crate::game::plugin_group::GamePlugins;
+use crate::visual::plugin_group::VisualPlugins;
+
+pub struct HeadlessServerPlugins;
+
+impl PluginGroup for HeadlessServerPlugins {
+    #[autodefault]
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+            .add_group(MinimalPlugins)
+            .add(StatesPlugin)
+            .add(LogPlugin {
+                level: Level::INFO,
+                filter: "wgpu=error,bevy_render=info,bevy_ecs=warn".to_string(),
+            })
+    }
+}
+
+pub struct ServerPlugins;
+
+impl PluginGroup for ServerPlugins {
+    #[autodefault]
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+            .add_group(HeadlessServerPlugins)
+            .add_group(
+                DefaultPlugins
+                    .set(WindowPlugin {
+                        primary_window: Some(Window {
+                            // resolution: (640.0, 480.0).into(),
+                            title: "Spacerama".to_owned(),
+                        }),
+                    })
+                    .set(RenderPlugin {
+                        render_creation: RenderCreation::Automatic(WgpuSettings {
+                            backends: Some(Backends::DX12),
+                        }),
+                    })
+                    .set(LogPlugin {
+                        level: Level::INFO,
+                        filter: "wgpu=error,bevy_render=info,bevy_ecs=warn".to_string(),
+                    }),
+            )
+            .add_group(VisualPlugins)
+    }
+}
+
+pub struct ClientPlugins;
+
+impl PluginGroup for ClientPlugins {
+    #[autodefault]
+    fn build(self) -> PluginGroupBuilder {
+        PluginGroupBuilder::start::<Self>()
+            .add_group(
+                DefaultPlugins
+                    .set(WindowPlugin {
+                        primary_window: Some(Window {
+                            // resolution: (640.0, 480.0).into(),
+                            title: "Spacerama".to_owned(),
+                        }),
+                    })
+                    .set(RenderPlugin {
+                        render_creation: RenderCreation::Automatic(WgpuSettings {
+                            backends: Some(Backends::DX12),
+                        }),
+                    })
+                    .set(LogPlugin {
+                        level: Level::INFO,
+                        filter: "wgpu=error,bevy_render=info,bevy_ecs=warn".to_string(),
+                    }),
+            )
+            .add_group(GamePlugins)
+            .add_group(VisualPlugins)
+    }
+}
 
 /// App that is Send.
 /// Used as a convenient workaround to send an App to a separate thread,
-/// if we know that the App doesn't contain NonSend resources.
+/// if we know that the App doesn't contain ``NonSend`` resources.
 struct SendApp(App);
 
 #[allow(clippy::non_send_fields_in_send_ty)]
@@ -60,26 +138,20 @@ pub enum Apps {
         client_app: App,
         client_config: ClientConfig,
     },
-    /// A single app that contains only the ServerPlugins
+    /// A single app that contains only the ``ServerPlugins``
     Server { app: App, config: ServerConfig },
-    /// A single app that contains only the ClientPlugins
+    /// A single app that contains only the ``ClientPlugins``
     Client { app: App, config: ClientConfig },
 }
 
 impl Apps {
     /// Build the apps with the given settings and CLI options.
-    pub fn new(settings: CommonSettings, cli: CommandLineArguments) -> Self {
+    pub fn new(settings: &CommonSettings, cli: &CommandLineArguments) -> Self {
         match cli {
             #[cfg(not(target_family = "wasm"))]
             CommandLineArguments::HostServer { client_id } => {
-                let client_net_config = client::NetConfig::Local { id: client_id };
-                let (app, client_config, server_config) =
-                    combined_app(settings, vec![], client_net_config);
-                Apps::HostServer {
-                    app,
-                    client_config,
-                    server_config,
-                }
+                let client_net_config = client::NetConfig::Local { id: *client_id };
+                Self::combined_app(settings, vec![], client_net_config)
             }
             #[cfg(not(target_family = "wasm"))]
             CommandLineArguments::ServerAndClient { client_id } => {
@@ -93,43 +165,47 @@ impl Apps {
 
                 // create client app
                 let net_config = build_client_netcode_config(
-                    client_id,
+                    *client_id,
                     // when communicating via channels, we need to use the address `LOCAL_SOCKET` for the server
                     LOCAL_SOCKET,
                     settings.client.conditioner.as_ref(),
                     &settings.shared,
                     transport_config,
                 );
-                let (client_app, client_config) = client_app(settings.clone(), net_config);
+                let client = Self::client_app(settings, net_config);
 
                 // create server app
                 let extra_transport_configs = vec![server::ServerTransport::Channels {
                     // even if we communicate via channels, we need to provide a socket address for the client
                     channels: vec![(LOCAL_SOCKET, to_server_recv, from_server_send)],
                 }];
-                let (server_app, server_config) = server_app(settings, extra_transport_configs);
-                Apps::ServerAndClient {
-                    client_app,
-                    client_config,
-                    server_app,
-                    server_config,
+                let server = Self::server_app(settings, extra_transport_configs);
+
+                match (client, server) {
+                    (
+                        Self::Client {
+                            app: client_app,
+                            config: client_config,
+                        },
+                        Self::Server {
+                            app: server_app,
+                            config: server_config,
+                        },
+                    ) => Self::ServerAndClient {
+                        client_app,
+                        client_config,
+                        server_app,
+                        server_config,
+                    },
+                    _ => panic!("Expected Apps::Client and Apps::Server"),
                 }
             }
             #[cfg(not(target_family = "wasm"))]
-            CommandLineArguments::Server => {
-                let (app, config) = server_app(settings, vec![]);
-                Apps::Server { app, config }
-            }
+            CommandLineArguments::Server => Self::server_app(settings, vec![]),
             CommandLineArguments::Client { client_id } => {
-                let server_addr = SocketAddr::new(
-                    settings.client.server_addr.into(),
-                    settings.client.server_port,
-                );
                 // use the cli-provided client id if it exists, otherwise use the settings client id
-                let client_id = client_id;
-                let net_config = get_client_net_config(&settings, client_id);
-                let (app, config) = client_app(settings, net_config);
-                Apps::Client { app, config }
+                let net_config = get_client_net_config(settings, *client_id);
+                Self::client_app(settings, net_config)
             }
         }
     }
@@ -137,14 +213,15 @@ impl Apps {
     /// Set the `server_replication_send_interval` on client and server apps.
     /// Use to overwrite the default [`SharedConfig`] value in the settings file.
     pub fn with_server_replication_send_interval(mut self, replication_interval: Duration) -> Self {
-        self.update_lightyear_client_config(|cc: &mut ClientConfig| {
-            cc.shared.server_replication_send_interval = replication_interval
-        });
-        self.update_lightyear_server_config(|sc: &mut ServerConfig| {
-            // the server replication currently needs to be overwritten in both places...
-            sc.shared.server_replication_send_interval = replication_interval;
-            sc.replication.send_interval = replication_interval;
-        });
+        _ = self
+            .update_lightyear_client_config(|cc: &mut ClientConfig| {
+                cc.shared.server_replication_send_interval = replication_interval;
+            })
+            .update_lightyear_server_config(|sc: &mut ServerConfig| {
+                // the server replication currently needs to be overwritten in both places...
+                sc.shared.server_replication_send_interval = replication_interval;
+                sc.replication.send_interval = replication_interval;
+            });
         self
     }
 
@@ -154,40 +231,40 @@ impl Apps {
     /// have been applied.
     pub fn add_lightyear_plugins(&mut self) -> &mut Self {
         match self {
-            Apps::Client { app, config } => {
-                app.add_plugins(client::ClientPlugins {
+            Self::Client { app, config } => {
+                _ = app.add_plugins(client::ClientPlugins {
                     config: config.clone(),
                 });
             }
-            Apps::Server { app, config } => {
-                app.add_plugins(server::ServerPlugins {
+            Self::Server { app, config } => {
+                _ = app.add_plugins(server::ServerPlugins {
                     config: config.clone(),
                 });
             }
-            Apps::ServerAndClient {
+            Self::ServerAndClient {
                 client_app,
                 server_app,
                 client_config,
                 server_config,
             } => {
-                client_app.add_plugins(client::ClientPlugins {
+                _ = client_app.add_plugins(client::ClientPlugins {
                     config: client_config.clone(),
                 });
-                server_app.add_plugins(server::ServerPlugins {
+                _ = server_app.add_plugins(server::ServerPlugins {
                     config: server_config.clone(),
                 });
             }
-            Apps::HostServer {
+            Self::HostServer {
                 app,
                 client_config,
                 server_config,
             } => {
                 // TODO: currently we need ServerPlugins to run first, because it adds the
                 //  SharedPlugins. not ideal
-                app.add_plugins(client::ClientPlugins {
+                _ = app.add_plugins(client::ClientPlugins {
                     config: client_config.clone(),
                 });
-                app.add_plugins(server::ServerPlugins {
+                _ = app.add_plugins(server::ServerPlugins {
                     config: server_config.clone(),
                 });
             }
@@ -204,21 +281,21 @@ impl Apps {
     ) -> &mut Self {
         match self {
             Self::Client { app, .. } => {
-                app.add_plugins((client_plugin, shared_plugin));
+                _ = app.add_plugins((client_plugin, shared_plugin));
             }
             Self::Server { app, .. } => {
-                app.add_plugins((server_plugin, shared_plugin));
+                _ = app.add_plugins((server_plugin, shared_plugin));
             }
             Self::ServerAndClient {
                 client_app,
                 server_app,
                 ..
             } => {
-                client_app.add_plugins((client_plugin, shared_plugin.clone()));
-                server_app.add_plugins((server_plugin, shared_plugin));
+                _ = client_app.add_plugins((client_plugin, shared_plugin.clone()));
+                _ = server_app.add_plugins((server_plugin, shared_plugin));
             }
             Self::HostServer { app, .. } => {
-                app.add_plugins((client_plugin, server_plugin, shared_plugin));
+                _ = app.add_plugins((client_plugin, server_plugin, shared_plugin));
             }
         }
         self
@@ -230,14 +307,14 @@ impl Apps {
         f: impl FnOnce(&mut ClientConfig),
     ) -> &mut Self {
         match self {
-            Apps::Client { config, .. } => {
+            Self::Client { config, .. } => {
                 f(config);
             }
-            Apps::Server { config, .. } => {}
-            Apps::ServerAndClient { client_config, .. } => {
+            Self::Server { .. } => {}
+            Self::ServerAndClient { client_config, .. } => {
                 f(client_config);
             }
-            Apps::HostServer { client_config, .. } => {
+            Self::HostServer { client_config, .. } => {
                 f(client_config);
             }
         }
@@ -250,14 +327,14 @@ impl Apps {
         f: impl FnOnce(&mut ServerConfig),
     ) -> &mut Self {
         match self {
-            Apps::Client { config, .. } => {}
-            Apps::Server { config, .. } => {
+            Self::Client { .. } => {}
+            Self::Server { config, .. } => {
                 f(config);
             }
-            Apps::ServerAndClient { server_config, .. } => {
+            Self::ServerAndClient { server_config, .. } => {
                 f(server_config);
             }
-            Apps::HostServer { server_config, .. } => {
+            Self::HostServer { server_config, .. } => {
                 f(server_config);
             }
         }
@@ -265,123 +342,115 @@ impl Apps {
     }
 
     /// Start running the apps.
-    pub fn run(self) {
+    pub fn run(self) -> AppExit {
         match self {
-            Apps::Client { mut app, .. } => {
-                app.run();
-            }
-            Apps::Server { mut app, .. } => {
-                app.run();
-            }
-            Apps::ServerAndClient {
+            Self::Client { mut app, .. } => app.run(),
+            Self::Server { mut app, .. } => app.run(),
+            Self::ServerAndClient {
                 mut client_app,
                 server_app,
                 ..
             } => {
                 let mut send_app = SendApp(server_app);
                 std::thread::spawn(move || send_app.run());
-                client_app.run();
+                client_app.run()
             }
-            Apps::HostServer { mut app, .. } => {
-                app.run();
-            }
+            Self::HostServer { mut app, .. } => app.run(),
         }
     }
-}
 
-/// Build the client app with the `ClientPlugins` added.
-/// Takes in a `net_config` parameter so that we configure the network transport.
-fn client_app(settings: CommonSettings, net_config: client::NetConfig) -> (App, ClientConfig) {
-    let mut app = App::new();
+    /// Build the client app with the `ClientPlugins` added.
+    /// Takes in a `net_config` parameter so that we configure the network transport.
+    // #[autodefault]
+    fn client_app(_settings: &CommonSettings, net_config: client::NetConfig) -> Self {
+        let mut app = App::new();
+        _ = app.add_plugins(ClientPlugins);
 
-    app.add_plugins(DefaultPlugins.build().set(LogPlugin {
-        level: Level::INFO,
-        filter: "wgpu=error,bevy_render=info,bevy_ecs=warn".to_string(),
-        ..default()
-    }));
-    let client_config = ClientConfig {
-        shared: shared_config(Mode::Separate),
-        net: net_config,
-        replication: ReplicationConfig {
-            send_interval: REPLICATION_INTERVAL,
+        let config = ClientConfig {
+            shared: shared_config(Mode::Separate),
+            net: net_config,
+            replication: ReplicationConfig {
+                send_interval: REPLICATION_INTERVAL,
+                ..default()
+            },
             ..default()
-        },
-        ..default()
-    };
-    (app, client_config)
-}
-
-/// Build the server app with the `ServerPlugins` added.
-#[cfg(not(target_family = "wasm"))]
-fn server_app(
-    settings: CommonSettings,
-    extra_transport_configs: Vec<server::ServerTransport>,
-) -> (App, ServerConfig) {
-    let mut app = App::new();
-    if !settings.server.headless {
-        app.add_plugins(DefaultPlugins.build().disable::<LogPlugin>());
-    } else {
-        app.add_plugins((MinimalPlugins, StatesPlugin));
+        };
+        Self::Client { app, config }
     }
-    app.add_plugins(LogPlugin {
-        level: Level::INFO,
-        filter: "wgpu=error,bevy_render=info,bevy_ecs=warn".to_string(),
-        ..default()
-    });
 
-    // configure the network configuration
-    let mut net_configs = get_server_net_configs(&settings);
-    let extra_net_configs = extra_transport_configs.into_iter().map(|c| {
-        build_server_netcode_config(settings.server.conditioner.as_ref(), &settings.shared, c)
-    });
-    net_configs.extend(extra_net_configs);
-    let server_config = ServerConfig {
-        shared: shared_config(Mode::Separate),
-        net: net_configs,
-        replication: ReplicationConfig {
-            send_interval: REPLICATION_INTERVAL,
+    /// Build the server app with the `ServerPlugins` added.
+    #[cfg(not(target_family = "wasm"))]
+    fn server_app(
+        settings: &CommonSettings,
+        extra_transport_configs: Vec<server::ServerTransport>,
+    ) -> Self {
+        let mut app = App::new();
+        if settings.server.headless {
+            _ = app.add_plugins(HeadlessServerPlugins);
+        } else {
+            _ = app.add_plugins(ServerPlugins);
+        }
+
+        // configure the network configuration
+        let mut net_configs = get_server_net_configs(settings);
+        let extra_net_configs = extra_transport_configs.into_iter().map(|c| {
+            build_server_netcode_config(settings.server.conditioner.as_ref(), &settings.shared, c)
+        });
+        net_configs.extend(extra_net_configs);
+        let config = ServerConfig {
+            shared: shared_config(Mode::Separate),
+            net: net_configs,
+            replication: ReplicationConfig {
+                send_interval: REPLICATION_INTERVAL,
+                ..default()
+            },
             ..default()
-        },
-        ..default()
-    };
-    (app, server_config)
-}
+        };
+        Self::Server { app, config }
+    }
 
-/// An `App` that contains both the client and server plugins
-#[cfg(not(target_family = "wasm"))]
-fn combined_app(
-    settings: CommonSettings,
-    extra_transport_configs: Vec<server::ServerTransport>,
-    client_net_config: client::NetConfig,
-) -> (App, ClientConfig, ServerConfig) {
-    let mut app = App::new();
-    app.add_plugins(DefaultPlugins.build().set(LogPlugin {
-        level: Level::INFO,
-        filter: "wgpu=error,bevy_render=info,bevy_ecs=warn".to_string(),
-        ..default()
-    }));
+    /// An `App` that contains both the client and server plugins
+    #[cfg(not(target_family = "wasm"))]
+    fn combined_app(
+        settings: &CommonSettings,
+        extra_transport_configs: Vec<server::ServerTransport>,
+        client_net_config: client::NetConfig,
+    ) -> Self {
+        let mut app = App::new();
+        _ = app.add_plugins(ClientPlugins);
 
-    // server config
-    let mut net_configs = get_server_net_configs(&settings);
-    let extra_net_configs = extra_transport_configs.into_iter().map(|c| {
-        build_server_netcode_config(settings.server.conditioner.as_ref(), &settings.shared, c)
-    });
-    net_configs.extend(extra_net_configs);
-    let server_config = ServerConfig {
-        shared: shared_config(Mode::HostServer),
-        net: net_configs,
-        replication: ReplicationConfig {
-            send_interval: REPLICATION_INTERVAL,
+        // server config
+        let mut net_configs = get_server_net_configs(settings);
+        let extra_net_configs = extra_transport_configs.into_iter().map(|c| {
+            build_server_netcode_config(settings.server.conditioner.as_ref(), &settings.shared, c)
+        });
+        net_configs.extend(extra_net_configs);
+        let server_config = ServerConfig {
+            shared: shared_config(Mode::HostServer),
+            net: net_configs,
+            replication: ReplicationConfig {
+                send_interval: REPLICATION_INTERVAL,
+                ..default()
+            },
             ..default()
-        },
-        ..default()
-    };
+        };
 
-    // client config
-    let client_config = ClientConfig {
-        shared: shared_config(Mode::HostServer),
-        net: client_net_config,
-        ..default()
-    };
-    (app, client_config, server_config)
+        // client config
+        let client_config = ClientConfig {
+            shared: shared_config(Mode::HostServer),
+            net: client_net_config,
+            prediction: PredictionConfig {
+                minimum_input_delay_ticks: settings.client.input_delay_ticks,
+                maximum_predicted_ticks: settings.client.max_prediction_ticks,
+                correction_ticks_factor: settings.client.correction_ticks_factor,
+                ..default()
+            },
+            ..default()
+        };
+        Self::HostServer {
+            app,
+            server_config,
+            client_config,
+        }
+    }
 }
