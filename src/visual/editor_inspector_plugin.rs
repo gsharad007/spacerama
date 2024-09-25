@@ -1,6 +1,4 @@
 use bevy::prelude::*;
-use bevy_debug_grid::DebugGridPlugin;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 #[derive(Debug)]
 pub struct EditorInspectorPlugin;

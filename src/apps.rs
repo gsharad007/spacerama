@@ -1,4 +1,3 @@
-use std::net::SocketAddr;
 use std::time::Duration;
 
 use autodefault::autodefault;
@@ -16,15 +15,15 @@ use bevy::{
     window::{Window, WindowPlugin},
 };
 
-use lightyear::prelude::client::PredictionConfig;
 use lightyear::prelude::client::ClientConfig;
+use lightyear::prelude::client::PredictionConfig;
 use lightyear::prelude::*;
 use lightyear::prelude::{client, server};
 use lightyear::server::config::ServerConfig;
 use lightyear::transport::LOCAL_SOCKET;
 
 use crate::cli::CommandLineArguments;
-use crate::game::network_plugin::compiled_config::{CommonSettings, Settings};
+use crate::game::network_plugin::compiled_config::CommonSettings;
 use crate::game::network_plugin::network_config::{
     build_client_netcode_config, get_client_net_config,
 };

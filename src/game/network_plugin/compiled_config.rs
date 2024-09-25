@@ -7,9 +7,6 @@ use bevy::utils::Duration;
 use serde::{Deserialize, Serialize};
 
 use lightyear::prelude::*;
-#[cfg(not(target_family = "wasm"))]
-use lightyear::prelude::client::*;
-
 
 pub fn read_compiled_settings() -> Settings {
     let settings_str = include_str!("../../../assets/config/compile/network_settings.ron");

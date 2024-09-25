@@ -1,20 +1,10 @@
 use std::net::{Ipv4Addr, SocketAddr};
 
-use bevy::asset::ron;
-use bevy::prelude::{default, Resource};
 use bevy::utils::Duration;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
 
-#[cfg(not(target_family = "wasm"))]
-use async_compat::Compat;
-#[cfg(not(target_family = "wasm"))]
-use bevy::tasks::IoTaskPool;
 
 use lightyear::prelude::client::Authentication;
-#[cfg(not(target_family = "wasm"))]
-use lightyear::prelude::client::*;
-use lightyear::prelude::{CompressionConfig, LinkConditionerConfig};
+use lightyear::prelude::LinkConditionerConfig;
 
 use lightyear::prelude::{client, server};
 
@@ -22,18 +12,16 @@ use super::compiled_config::ServerTransports;
 use super::compiled_config::{ClientTransports, CommonSettings, Conditioner, SharedSettings};
 
 #[allow(dead_code)]
-pub(crate) fn build_server_netcode_config(
+pub fn build_server_netcode_config(
     conditioner: Option<&Conditioner>,
     shared: &SharedSettings,
     transport_config: server::ServerTransport,
 ) -> server::NetConfig {
-    let conditioner = conditioner.map_or(None, |c| {
-        Some(LinkConditionerConfig {
-            incoming_latency: Duration::from_millis(c.latency_ms as u64),
-            incoming_jitter: Duration::from_millis(c.jitter_ms as u64),
+    let conditioner = conditioner.map(|c| LinkConditionerConfig {
+            incoming_latency: Duration::from_millis(u64::from(c.latency_ms)),
+            incoming_jitter: Duration::from_millis(u64::from(c.jitter_ms)),
             incoming_loss: c.packet_loss,
-        })
-    });
+        });
     let netcode_config = server::NetcodeConfig::default()
         .with_protocol_id(shared.protocol_id)
         .with_key(shared.private_key);
@@ -51,7 +39,7 @@ pub(crate) fn build_server_netcode_config(
 /// Parse the settings into a list of `NetConfig` that are used to configure how the lightyear server
 /// listens for incoming client connections
 #[cfg(not(target_family = "wasm"))]
-pub(crate) fn get_server_net_configs(settings: &CommonSettings) -> Vec<server::NetConfig> {
+pub fn get_server_net_configs(settings: &CommonSettings) -> Vec<server::NetConfig> {
     settings
         .server
         .transport
@@ -130,14 +118,14 @@ pub(crate) fn get_server_net_configs(settings: &CommonSettings) -> Vec<server::N
 }
 
 /// Build a netcode config for the client
-pub(crate) fn build_client_netcode_config(
+pub fn build_client_netcode_config(
     client_id: u64,
     server_addr: SocketAddr,
     conditioner: Option<&Conditioner>,
     shared: &SharedSettings,
     transport_config: client::ClientTransport,
 ) -> client::NetConfig {
-    let conditioner = conditioner.map_or(None, |c| Some(c.build()));
+    let conditioner = conditioner.map(super::compiled_config::Conditioner::build);
     let auth = Authentication::Manual {
         server_addr,
         client_id,
