@@ -1,5 +1,7 @@
+pub mod client_plugin;
 pub mod compiled_config;
 pub mod network_config;
+pub mod server_plugin;
 pub mod shared_config;
 
 use bevy::app::{App, Plugin};

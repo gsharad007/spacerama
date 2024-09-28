@@ -44,9 +44,6 @@ pub struct CommonSettings {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ServerSettings {
-    /// If true, disable any rendering-related plugins
-    pub headless: bool,
-
     /// Possibly add a conditioner to simulate network conditions
     pub conditioner: Option<Conditioner>,
 

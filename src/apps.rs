@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use autodefault::autodefault;
-use bevy::app::PluginGroupBuilder;
+use bevy::app::{PluginGroupBuilder, ScheduleRunnerPlugin};
 use bevy::log::{Level, LogPlugin};
 use bevy::prelude::*;
 use bevy::state::app::StatesPlugin;
@@ -31,6 +31,7 @@ use crate::game::network_plugin::network_config::{
     build_server_netcode_config, get_server_net_configs,
 };
 use crate::game::network_plugin::shared_config::{shared_config, REPLICATION_INTERVAL};
+use crate::game::network_plugin::{client_plugin, server_plugin};
 use crate::game::plugin_group::GamePlugins;
 use crate::visual::plugin_group::VisualPlugins;
 
@@ -40,12 +41,19 @@ impl PluginGroup for HeadlessServerPlugins {
     #[autodefault]
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
-            .add_group(MinimalPlugins)
+            .add_group(MinimalPlugins.set(ScheduleRunnerPlugin::run_once()))
             .add(StatesPlugin)
+            .add(HierarchyPlugin)
             .add(LogPlugin {
                 level: Level::INFO,
                 filter: "wgpu=error,bevy_render=info,bevy_ecs=warn".to_string(),
             })
+            .add(TransformPlugin)
+            .add(bevy::asset::AssetPlugin::default())
+            .add(bevy::scene::ScenePlugin)
+            // .init_resource::<Assets<Mesh>>()
+            .add(server_plugin::ServerPlugin)
+            .add_group(GamePlugins)
     }
 }
 
@@ -55,7 +63,6 @@ impl PluginGroup for ServerPlugins {
     #[autodefault]
     fn build(self) -> PluginGroupBuilder {
         PluginGroupBuilder::start::<Self>()
-            .add_group(HeadlessServerPlugins)
             .add_group(
                 DefaultPlugins
                     .set(WindowPlugin {
@@ -74,6 +81,8 @@ impl PluginGroup for ServerPlugins {
                         filter: "wgpu=error,bevy_render=info,bevy_ecs=warn".to_string(),
                     }),
             )
+            .add(server_plugin::ServerPlugin)
+            .add_group(GamePlugins)
             .add_group(VisualPlugins)
     }
 }
@@ -102,6 +111,7 @@ impl PluginGroup for ClientPlugins {
                         filter: "wgpu=error,bevy_render=info,bevy_ecs=warn".to_string(),
                     }),
             )
+            .add(client_plugin::ClientPlugin)
             .add_group(GamePlugins)
             .add_group(VisualPlugins)
     }
@@ -384,7 +394,7 @@ impl Apps {
         extra_transport_configs: Vec<server::ServerTransport>,
     ) -> Self {
         let mut app = App::new();
-        if settings.server.headless {
+        if cfg!(feature = "server_headless") {
             _ = app.add_plugins(HeadlessServerPlugins);
         } else {
             _ = app.add_plugins(ServerPlugins);

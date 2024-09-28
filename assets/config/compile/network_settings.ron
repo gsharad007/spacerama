@@ -31,7 +31,6 @@ Settings(
             correction_ticks_factor: 1.5,
         ),
         server: ServerSettings(
-            headless: true,
             conditioner: None,
             transport: [
                 // WebTransport(
