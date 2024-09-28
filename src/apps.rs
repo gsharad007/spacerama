@@ -115,8 +115,8 @@ struct SendApp(App);
 #[allow(clippy::non_send_fields_in_send_ty)]
 unsafe impl Send for SendApp {}
 impl SendApp {
-    fn run(&mut self) {
-        self.0.run();
+    fn run(&mut self) -> AppExit {
+        self.0.run()
     }
 }
 

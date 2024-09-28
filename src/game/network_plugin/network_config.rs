@@ -2,8 +2,13 @@ use std::net::{Ipv4Addr, SocketAddr};
 
 use bevy::utils::Duration;
 
+#[cfg(not(target_family = "wasm"))]
+use async_compat::Compat;
+#[cfg(not(target_family = "wasm"))]
+use bevy::tasks::IoTaskPool;
 
-use lightyear::prelude::client::Authentication;
+#[cfg(not(target_family = "wasm"))]
+use lightyear::prelude::client::*;
 use lightyear::prelude::LinkConditionerConfig;
 
 use lightyear::prelude::{client, server};
@@ -18,10 +23,10 @@ pub fn build_server_netcode_config(
     transport_config: server::ServerTransport,
 ) -> server::NetConfig {
     let conditioner = conditioner.map(|c| LinkConditionerConfig {
-            incoming_latency: Duration::from_millis(u64::from(c.latency_ms)),
-            incoming_jitter: Duration::from_millis(u64::from(c.jitter_ms)),
-            incoming_loss: c.packet_loss,
-        });
+        incoming_latency: Duration::from_millis(u64::from(c.latency_ms)),
+        incoming_jitter: Duration::from_millis(u64::from(c.jitter_ms)),
+        incoming_loss: c.packet_loss,
+    });
     let netcode_config = server::NetcodeConfig::default()
         .with_protocol_id(shared.protocol_id)
         .with_key(shared.private_key);

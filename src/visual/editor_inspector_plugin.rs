@@ -1,4 +1,8 @@
 use bevy::prelude::*;
+#[cfg(feature = "inspector")]
+use bevy_debug_grid::DebugGridPlugin;
+#[cfg(feature = "inspector")]
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 #[derive(Debug)]
 pub struct EditorInspectorPlugin;
